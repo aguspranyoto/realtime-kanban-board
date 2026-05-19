@@ -49,26 +49,26 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
 
 ## 4. Development Roadmap
 ### Phase 1: Backend Foundation & Auth (Backend focus)
-1. Initialize Go project and PostgreSQL database.
-2. Setup User models and Authentication routes (Email/Pass + Google OAuth).
-3. Implement JWT generation and validation middleware.
-4. Create CRUD REST API endpoints for Workspaces and Boards.
+1. [DONE] Initialize Go project and PostgreSQL database.
+2. [DONE] Setup User models and Authentication routes (Email/Pass + Google OAuth).
+3. [DONE] Implement JWT generation and validation middleware.
+4. [DONE] Create CRUD REST API endpoints for Workspaces and Boards.
 
 ### Phase 2: Web Client Foundation (Frontend focus)
-1. Initialize Next.js, Tailwind, and shadcn/ui.
-2. Set up React Hook Form + Zod for Login/Signup screens.
-3. Configure React Query and Zustand.
-4. Build Dashboard UI to fetch and display Workspaces and Boards.
+1. [DONE] Initialize Next.js, Tailwind, and shadcn/ui.
+2. [DONE] Set up React Hook Form + Zod for Login/Signup screens.
+3. [DONE] Configure React Query and Zustand.
+4. [DONE] Build Dashboard UI to fetch and display Workspaces and Boards.
 
 ### Phase 3: Core Trello Mechanics (Full-stack)
-1. Build API endpoints for Lists and Cards.
-2. Build the Board Canvas UI in Next.js.
-3. Implement drag-and-drop logic for lists and cards on the frontend.
-4. Hook up drag-and-drop events to the Go API to persist order changes in the database.
+1. [DONE] Build API endpoints for Lists and Cards.
+2. [DONE] Build the Board Canvas UI in Next.js.
+3. [DONE] Implement drag-and-drop logic for lists and cards on the frontend.
+4. [DONE] Hook up drag-and-drop events to the Go API to persist order changes in the database.
 
 ### Phase 4: Real-time & Polish
-1. Set up WebSocket server in Go.
-2. Connect Next.js frontend to WebSockets to listen for board changes.
+1. [DONE] Set up WebSocket server in Go.
+2. [DONE] Connect Next.js frontend to WebSockets to listen for board changes.
 3. Add finishing touches (Card labels, due dates, checklists).
 
 ### Phase 5: Mobile Application
