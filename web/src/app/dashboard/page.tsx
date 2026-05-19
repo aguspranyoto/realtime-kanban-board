@@ -28,6 +28,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus, LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -118,6 +119,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            <ModeToggle />
             <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger

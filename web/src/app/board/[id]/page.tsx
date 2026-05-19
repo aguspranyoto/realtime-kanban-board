@@ -27,6 +27,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { NotificationBell } from "@/components/notification-bell";
 import { CardModal } from "@/components/card-modal";
 import { formatDistanceToNow } from "date-fns";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export default function BoardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -237,6 +238,11 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Theme Switcher */}
+          <div className="bg-white/10 hover:bg-white/20 rounded-lg p-0.5 text-white">
+            <ModeToggle />
+          </div>
+
           {/* Notification Bell */}
           <div className="bg-white/10 hover:bg-white/20 rounded-lg p-0.5 text-white">
             <NotificationBell />
@@ -299,7 +305,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="board" direction="horizontal" type="list">
           {(provided) => (
-            <ScrollArea className="flex-1">
+            <div className="flex-1 overflow-x-auto overflow-y-auto">
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
@@ -488,8 +494,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                   )}
                 </div>
               </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+            </div>
           )}
         </Droppable>
       </DragDropContext>

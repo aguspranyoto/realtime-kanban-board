@@ -90,7 +90,7 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
 2. [DONE] Connect Next.js frontend to WebSockets to listen for board changes.
 3. [DONE] Add finishing touches (Card labels, due dates, checklists).
 4. [DONE] Change all color to black, gray and white only
-5. add theme swithcer (light, dark,system)
+5. [DONE] add theme swithcer (light, dark,system)
 
 ### Phase 5: Mobile Application
 
