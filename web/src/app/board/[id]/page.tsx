@@ -180,8 +180,8 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
 
   if (!board) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <div className="animate-pulse text-slate-400">Loading board...</div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Loading board...</div>
       </div>
     );
   }
@@ -194,7 +194,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
           variant="ghost"
           size="sm"
           onClick={() => router.push("/dashboard")}
-          className="text-white/80 hover:text-white hover:bg-white/10 cursor-pointer"
+          className="text-white hover:bg-white/10 cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
@@ -222,23 +222,23 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                           className="w-72 shrink-0"
                         >
                           {/* List */}
-                          <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700/50 shadow-lg">
+                          <div className="bg-card/90 backdrop-blur rounded-xl border shadow-lg">
                             {/* List Header */}
                             <div
                               {...provided.dragHandleProps}
                               className="flex items-center justify-between px-3 py-2.5"
                             >
-                              <h3 className="font-semibold text-sm text-white">{list.name}</h3>
+                              <h3 className="font-semibold text-sm text-foreground">{list.name}</h3>
                               <DropdownMenu>
-                              <DropdownMenuTrigger
-                                  render={<Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-white cursor-pointer" />}
+                                <DropdownMenuTrigger
+                                  render={<Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground cursor-pointer" />}
                                 >
                                   <MoreHorizontal className="h-4 w-4" />
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="bg-slate-900 border-slate-700">
+                                <DropdownMenuContent className="bg-popover border">
                                   <DropdownMenuItem
                                     onClick={() => deleteList.mutate(list.id)}
-                                    className="text-red-400 cursor-pointer"
+                                    className="text-destructive cursor-pointer"
                                   >
                                     <Trash2 className="mr-2 h-4 w-4" /> Delete List
                                   </DropdownMenuItem>
@@ -253,7 +253,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                   ref={provided.innerRef}
                                   {...provided.droppableProps}
                                   className={`px-2 pb-2 min-h-[8px] space-y-2 transition-colors ${
-                                    snapshot.isDraggingOver ? "bg-slate-700/50 rounded-lg" : ""
+                                    snapshot.isDraggingOver ? "bg-muted rounded-lg" : ""
                                   }`}
                                 >
                                   {list.cards
@@ -266,7 +266,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                             {...provided.draggableProps}
                                             {...provided.dragHandleProps}
                                             onClick={() => setSelectedCardId(card.id)}
-                                            className={`bg-slate-800 border border-slate-700/50 rounded-lg px-3 py-2 text-sm text-white hover:border-slate-500 cursor-pointer transition-all ${
+                                            className={`bg-card border rounded-lg px-3 py-2 text-sm text-foreground hover:border-foreground/50 cursor-pointer transition-all ${
                                               snapshot.isDragging ? "shadow-xl shadow-black/20 rotate-2" : ""
                                             }`}
                                           >
@@ -307,12 +307,12 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                       if (e.key === "Escape") { setAddingListId(null); setNewCardName(""); }
                                     }}
                                     placeholder="Enter card title..."
-                                    className="border-slate-600 bg-slate-800 text-sm"
+                                    className="text-sm"
                                   />
                                   <div className="flex items-center gap-2">
                                     <Button
                                       size="sm"
-                                      className="bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer"
+                                      className="cursor-pointer"
                                       onClick={() => {
                                         if (newCardName.trim()) createCard.mutate({ list_id: list.id, name: newCardName.trim() });
                                       }}
@@ -333,7 +333,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                                  className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer"
                                   onClick={() => { setAddingListId(list.id); setNewCardName(""); }}
                                 >
                                   <Plus className="h-4 w-4 mr-1" /> Add a card
@@ -350,7 +350,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                 {/* Add New List */}
                 <div className="w-72 shrink-0">
                   {addingNewList ? (
-                    <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700/50 p-3 space-y-2">
+                    <div className="bg-card/90 backdrop-blur rounded-xl border p-3 space-y-2">
                       <Input
                         autoFocus
                         value={newListName}
@@ -362,12 +362,11 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                           if (e.key === "Escape") { setAddingNewList(false); setNewListName(""); }
                         }}
                         placeholder="Enter list title..."
-                        className="border-slate-600 bg-slate-800"
                       />
                       <div className="flex items-center gap-2">
                         <Button
                           size="sm"
-                          className="bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer"
+                          className="cursor-pointer"
                           onClick={() => {
                             if (newListName.trim()) createList.mutate({ board_id: id, name: newListName.trim() });
                           }}

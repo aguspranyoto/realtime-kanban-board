@@ -105,13 +105,13 @@ export default function DashboardPage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-background">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <LayoutDashboard className="h-5 w-5 text-slate-300" />
-            <span className="text-lg font-semibold text-white">
+            <LayoutDashboard className="h-5 w-5 text-foreground" />
+            <span className="text-lg font-semibold text-foreground">
               Trello Clone
             </span>
           </div>
@@ -127,22 +127,22 @@ export default function DashboardPage() {
             >
               <Avatar className="h-7 w-7">
                 <AvatarImage src={user.avatar_url} />
-                <AvatarFallback className="bg-slate-700 text-white text-xs">
+                <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
                   {user.name?.charAt(0)?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden sm:inline text-sm">{user.name}</span>
+              <span className="hidden sm:inline text-sm text-foreground">{user.name}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="bg-slate-900 border-slate-700"
+              className="bg-popover border"
             >
               <DropdownMenuItem className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" /> Settings
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="text-red-400 cursor-pointer"
+                className="text-destructive cursor-pointer"
               >
                 <LogOut className="mr-2 h-4 w-4" /> Sign out
               </DropdownMenuItem>
@@ -156,7 +156,7 @@ export default function DashboardPage() {
           {/* Sidebar: Workspaces */}
           <div className="lg:col-span-1 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white">Workspaces</h2>
+              <h2 className="text-lg font-semibold text-foreground">Workspaces</h2>
               <Dialog open={wsDialogOpen} onOpenChange={setWsDialogOpen}>
                 <DialogTrigger
                   render={
@@ -169,7 +169,7 @@ export default function DashboardPage() {
                 >
                   <Plus className="h-4 w-4" />
                 </DialogTrigger>
-                <DialogContent className="bg-slate-900 border-slate-700">
+                <DialogContent className="bg-popover border">
                   <DialogHeader>
                     <DialogTitle>Create Workspace</DialogTitle>
                     <DialogDescription>
@@ -183,7 +183,6 @@ export default function DashboardPage() {
                         value={wsName}
                         onChange={(e) => setWsName(e.target.value)}
                         placeholder="My Workspace"
-                        className="border-slate-700 bg-slate-800/50"
                       />
                     </div>
                     <div>
@@ -192,14 +191,13 @@ export default function DashboardPage() {
                         value={wsDesc}
                         onChange={(e) => setWsDesc(e.target.value)}
                         placeholder="Optional description"
-                        className="border-slate-700 bg-slate-800/50"
                       />
                     </div>
                     <Button
                       onClick={() =>
                         createWs.mutate({ name: wsName, description: wsDesc })
                       }
-                      className="w-full bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer"
+                      className="w-full cursor-pointer"
                       disabled={!wsName || createWs.isPending}
                     >
                       {createWs.isPending ? "Creating..." : "Create Workspace"}
@@ -216,15 +214,15 @@ export default function DashboardPage() {
                   onClick={() => setSelectedWs(ws.id)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
                     selectedWs === ws.id
-                      ? "bg-slate-800 text-white border border-slate-700"
-                      : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                      ? "bg-secondary text-foreground border"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                   }`}
                 >
                   {ws.name}
                 </button>
               ))}
               {workspaces.length === 0 && (
-                <p className="text-sm text-slate-500 text-center py-4">
+                <p className="text-sm text-muted-foreground text-center py-4">
                   No workspaces yet. Create one to get started!
                 </p>
               )}
@@ -236,7 +234,7 @@ export default function DashboardPage() {
             {selectedWs ? (
               <>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white">
+                  <h2 className="text-xl font-semibold text-foreground">
                     {workspaces.find((w) => w.id === selectedWs)?.name ||
                       "Boards"}
                   </h2>
@@ -248,13 +246,13 @@ export default function DashboardPage() {
                       render={
                         <Button
                           size="sm"
-                          className="bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer"
+                          className="cursor-pointer"
                         />
                       }
                     >
                       <Plus className="mr-2 h-4 w-4" /> New Board
                     </DialogTrigger>
-                    <DialogContent className="bg-slate-900 border-slate-700">
+                    <DialogContent className="bg-popover border">
                       <DialogHeader>
                         <DialogTitle>Create Board</DialogTitle>
                         <DialogDescription>
@@ -268,7 +266,6 @@ export default function DashboardPage() {
                             value={boardName}
                             onChange={(e) => setBoardName(e.target.value)}
                             placeholder="My Board"
-                            className="border-slate-700 bg-slate-800/50"
                           />
                         </div>
                         <Button
@@ -278,7 +275,7 @@ export default function DashboardPage() {
                               name: boardName,
                             })
                           }
-                          className="w-full bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer"
+                          className="w-full cursor-pointer"
                           disabled={!boardName || createBoard.isPending}
                         >
                           {createBoard.isPending
@@ -294,7 +291,7 @@ export default function DashboardPage() {
                   {boards.map((board) => (
                     <Card
                       key={board.id}
-                      className="group cursor-pointer border-slate-800 bg-slate-900/50 hover:border-slate-500 hover:shadow-lg transition-all duration-200"
+                      className="group cursor-pointer border bg-card hover:border-foreground/50 hover:shadow-lg transition-all duration-200"
                       onClick={() => router.push(`/board/${board.id}`)}
                     >
                       <div
@@ -302,12 +299,12 @@ export default function DashboardPage() {
                         style={{ background: board.background }}
                       />
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-base group-hover:text-white transition-colors">
+                        <CardTitle className="text-base group-hover:text-foreground transition-colors">
                           {board.name}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="pb-4">
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-muted-foreground">
                           {board.description || "No description"}
                         </p>
                       </CardContent>
@@ -315,14 +312,14 @@ export default function DashboardPage() {
                   ))}
 
                   {boards.length === 0 && (
-                    <div className="col-span-full text-center py-12 text-slate-500">
+                    <div className="col-span-full text-center py-12 text-muted-foreground">
                       <p>No boards yet. Create your first board!</p>
                     </div>
                   )}
                 </div>
               </>
             ) : (
-              <div className="text-center py-20 text-slate-500">
+              <div className="text-center py-20 text-muted-foreground">
                 <LayoutDashboard className="mx-auto h-12 w-12 mb-4 opacity-50" />
                 <p className="text-lg">
                   Select or create a workspace to see your boards

@@ -84,17 +84,17 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-black p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold text-foreground">
             Trello Clone
           </h1>
           <p className="text-muted-foreground mt-2">Organize your projects, your way</p>
         </div>
 
-        <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-xl shadow-2xl">
+        <Card className="border bg-card shadow-2xl">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">
               {isLogin ? "Sign in" : "Create account"}
@@ -109,7 +109,7 @@ export default function AuthPage() {
             {/* Google OAuth Button */}
             <Button
               variant="outline"
-              className="w-full border-slate-700 hover:bg-slate-800 cursor-pointer"
+              className="w-full cursor-pointer"
               onClick={handleGoogleLogin}
               type="button"
             >
@@ -135,8 +135,8 @@ export default function AuthPage() {
             </Button>
 
             <div className="relative">
-              <Separator className="bg-slate-700" />
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 px-2 text-xs text-muted-foreground">
+              <Separator />
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
                 or
               </span>
             </div>
@@ -150,7 +150,6 @@ export default function AuthPage() {
                     id="login-email"
                     type="email"
                     placeholder="you@example.com"
-                    className="border-slate-700 bg-slate-800/50"
                     {...loginForm.register("email")}
                   />
                   {loginForm.formState.errors.email && (
@@ -163,14 +162,13 @@ export default function AuthPage() {
                     id="login-password"
                     type="password"
                     placeholder="••••••••"
-                    className="border-slate-700 bg-slate-800/50"
                     {...loginForm.register("password")}
                   />
                   {loginForm.formState.errors.password && (
                     <p className="text-sm text-red-400">{loginForm.formState.errors.password.message}</p>
                   )}
                 </div>
-                <Button type="submit" className="w-full bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer" disabled={isLoading}>
+                <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
                   {isLoading ? "Signing in..." : "Sign in"}
                 </Button>
               </form>
@@ -182,7 +180,6 @@ export default function AuthPage() {
                   <Input
                     id="register-name"
                     placeholder="John Doe"
-                    className="border-slate-700 bg-slate-800/50"
                     {...registerForm.register("name")}
                   />
                   {registerForm.formState.errors.name && (
@@ -195,7 +192,6 @@ export default function AuthPage() {
                     id="register-email"
                     type="email"
                     placeholder="you@example.com"
-                    className="border-slate-700 bg-slate-800/50"
                     {...registerForm.register("email")}
                   />
                   {registerForm.formState.errors.email && (
@@ -208,14 +204,13 @@ export default function AuthPage() {
                     id="register-password"
                     type="password"
                     placeholder="••••••••"
-                    className="border-slate-700 bg-slate-800/50"
                     {...registerForm.register("password")}
                   />
                   {registerForm.formState.errors.password && (
                     <p className="text-sm text-red-400">{registerForm.formState.errors.password.message}</p>
                   )}
                 </div>
-                <Button type="submit" className="w-full bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer" disabled={isLoading}>
+                <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Create account"}
                 </Button>
               </form>
@@ -226,7 +221,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-slate-300 hover:text-white underline-offset-4 hover:underline cursor-pointer"
+                className="text-foreground hover:underline underline-offset-4 cursor-pointer"
               >
                 {isLogin ? "Sign up" : "Sign in"}
               </button>
