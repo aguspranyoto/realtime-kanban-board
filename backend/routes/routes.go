@@ -65,4 +65,12 @@ func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub) {
 	protected.Put("/cards/:id", card.Update)
 	protected.Put("/cards/move", card.MoveCards)
 	protected.Delete("/cards/:id", card.Delete)
+
+	// Card Details (Labels & Checklists)
+	protected.Post("/cards/:id/labels", card.AddLabelToCard)
+	protected.Delete("/cards/:id/labels/:labelId", card.RemoveLabelFromCard)
+	protected.Post("/cards/:id/checklists", card.AddChecklist)
+	protected.Post("/checklists/:id/items", card.AddChecklistItem)
+	protected.Put("/checklists/items/:id", card.UpdateChecklistItem)
+	protected.Delete("/checklists/:id", card.DeleteChecklist)
 }

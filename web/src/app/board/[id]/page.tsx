@@ -22,6 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CardModal } from "@/components/card-modal";
 
 export default function BoardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -31,6 +32,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
   const [newCardName, setNewCardName] = useState("");
   const [addingNewList, setAddingNewList] = useState(false);
   const [newListName, setNewListName] = useState("");
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
   // Fetch board with all data
   const { data: board } = useQuery<Board>({
@@ -179,7 +181,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
   if (!board) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <div className="animate-pulse text-blue-400">Loading board...</div>
+        <div className="animate-pulse text-slate-400">Loading board...</div>
       </div>
     );
   }
@@ -251,7 +253,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                   ref={provided.innerRef}
                                   {...provided.droppableProps}
                                   className={`px-2 pb-2 min-h-[8px] space-y-2 transition-colors ${
-                                    snapshot.isDraggingOver ? "bg-blue-500/10 rounded-lg" : ""
+                                    snapshot.isDraggingOver ? "bg-slate-700/50 rounded-lg" : ""
                                   }`}
                                 >
                                   {list.cards
@@ -263,8 +265,9 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                             ref={provided.innerRef}
                                             {...provided.draggableProps}
                                             {...provided.dragHandleProps}
-                                            className={`bg-slate-800 border border-slate-700/50 rounded-lg px-3 py-2 text-sm text-white hover:border-blue-500/50 cursor-pointer transition-all ${
-                                              snapshot.isDragging ? "shadow-xl shadow-blue-500/20 rotate-2" : ""
+                                            onClick={() => setSelectedCardId(card.id)}
+                                            className={`bg-slate-800 border border-slate-700/50 rounded-lg px-3 py-2 text-sm text-white hover:border-slate-500 cursor-pointer transition-all ${
+                                              snapshot.isDragging ? "shadow-xl shadow-black/20 rotate-2" : ""
                                             }`}
                                           >
                                             {/* Labels */}
@@ -309,7 +312,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                   <div className="flex items-center gap-2">
                                     <Button
                                       size="sm"
-                                      className="bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                                      className="bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer"
                                       onClick={() => {
                                         if (newCardName.trim()) createCard.mutate({ list_id: list.id, name: newCardName.trim() });
                                       }}
@@ -364,7 +367,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                       <div className="flex items-center gap-2">
                         <Button
                           size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                          className="bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer"
                           onClick={() => {
                             if (newListName.trim()) createList.mutate({ board_id: id, name: newListName.trim() });
                           }}
@@ -397,6 +400,21 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
           )}
         </Droppable>
       </DragDropContext>
+
+      {/* Card Modal */}
+      <CardModal
+        card={
+          board?.lists
+            ?.flatMap((l) => l.cards || [])
+            .find((c) => c.id === selectedCardId) || null
+        }
+        listName={
+          board?.lists?.find((l) => l.cards?.some((c) => c.id === selectedCardId))?.name || "Unknown List"
+        }
+        isOpen={!!selectedCardId}
+        onClose={() => setSelectedCardId(null)}
+        boardId={id}
+      />
     </div>
   );
 }

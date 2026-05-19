@@ -69,7 +69,8 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
 ### Phase 4: Real-time & Polish
 1. [DONE] Set up WebSocket server in Go.
 2. [DONE] Connect Next.js frontend to WebSockets to listen for board changes.
-3. Add finishing touches (Card labels, due dates, checklists).
+3. [DONE] Add finishing touches (Card labels, due dates, checklists).
+4. [DONE] Change all color to black, gray and white only
 
 ### Phase 5: Mobile Application
 1. Initialize React Native (Expo) project.

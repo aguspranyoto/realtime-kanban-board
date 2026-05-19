@@ -110,29 +110,40 @@ export default function DashboardPage() {
       <nav className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <LayoutDashboard className="h-5 w-5 text-blue-400" />
-            <span className="text-lg font-semibold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <LayoutDashboard className="h-5 w-5 text-slate-300" />
+            <span className="text-lg font-semibold text-white">
               Trello Clone
             </span>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger
-              render={<Button variant="ghost" className="flex items-center gap-2 cursor-pointer" />}
+              render={
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 cursor-pointer"
+                />
+              }
             >
-                <Avatar className="h-7 w-7">
-                  <AvatarImage src={user.avatar_url} />
-                  <AvatarFallback className="bg-blue-600 text-white text-xs">
-                    {user.name?.charAt(0)?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="hidden sm:inline text-sm">{user.name}</span>
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={user.avatar_url} />
+                <AvatarFallback className="bg-slate-700 text-white text-xs">
+                  {user.name?.charAt(0)?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="hidden sm:inline text-sm">{user.name}</span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700">
+            <DropdownMenuContent
+              align="end"
+              className="bg-slate-900 border-slate-700"
+            >
               <DropdownMenuItem className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" /> Settings
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout} className="text-red-400 cursor-pointer">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-red-400 cursor-pointer"
+              >
                 <LogOut className="mr-2 h-4 w-4" /> Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -148,14 +159,22 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-white">Workspaces</h2>
               <Dialog open={wsDialogOpen} onOpenChange={setWsDialogOpen}>
                 <DialogTrigger
-                  render={<Button size="sm" variant="ghost" className="h-8 w-8 p-0 cursor-pointer" />}
+                  render={
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 cursor-pointer"
+                    />
+                  }
                 >
-                    <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4" />
                 </DialogTrigger>
                 <DialogContent className="bg-slate-900 border-slate-700">
                   <DialogHeader>
                     <DialogTitle>Create Workspace</DialogTitle>
-                    <DialogDescription>A workspace holds all your boards and team members.</DialogDescription>
+                    <DialogDescription>
+                      A workspace holds all your boards and team members.
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
@@ -177,8 +196,10 @@ export default function DashboardPage() {
                       />
                     </div>
                     <Button
-                      onClick={() => createWs.mutate({ name: wsName, description: wsDesc })}
-                      className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                      onClick={() =>
+                        createWs.mutate({ name: wsName, description: wsDesc })
+                      }
+                      className="w-full bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer"
                       disabled={!wsName || createWs.isPending}
                     >
                       {createWs.isPending ? "Creating..." : "Create Workspace"}
@@ -195,7 +216,7 @@ export default function DashboardPage() {
                   onClick={() => setSelectedWs(ws.id)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
                     selectedWs === ws.id
-                      ? "bg-blue-600/20 text-blue-400 border border-blue-500/30"
+                      ? "bg-slate-800 text-white border border-slate-700"
                       : "text-slate-400 hover:bg-slate-800 hover:text-white"
                   }`}
                 >
@@ -216,18 +237,29 @@ export default function DashboardPage() {
               <>
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-white">
-                    {workspaces.find((w) => w.id === selectedWs)?.name || "Boards"}
+                    {workspaces.find((w) => w.id === selectedWs)?.name ||
+                      "Boards"}
                   </h2>
-                  <Dialog open={boardDialogOpen} onOpenChange={setBoardDialogOpen}>
+                  <Dialog
+                    open={boardDialogOpen}
+                    onOpenChange={setBoardDialogOpen}
+                  >
                     <DialogTrigger
-                      render={<Button size="sm" className="bg-blue-600 hover:bg-blue-700 cursor-pointer" />}
+                      render={
+                        <Button
+                          size="sm"
+                          className="bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer"
+                        />
+                      }
                     >
-                        <Plus className="mr-2 h-4 w-4" /> New Board
+                      <Plus className="mr-2 h-4 w-4" /> New Board
                     </DialogTrigger>
                     <DialogContent className="bg-slate-900 border-slate-700">
                       <DialogHeader>
                         <DialogTitle>Create Board</DialogTitle>
-                        <DialogDescription>Add a new board to organize your tasks.</DialogDescription>
+                        <DialogDescription>
+                          Add a new board to organize your tasks.
+                        </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
@@ -246,10 +278,12 @@ export default function DashboardPage() {
                               name: boardName,
                             })
                           }
-                          className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                          className="w-full bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer"
                           disabled={!boardName || createBoard.isPending}
                         >
-                          {createBoard.isPending ? "Creating..." : "Create Board"}
+                          {createBoard.isPending
+                            ? "Creating..."
+                            : "Create Board"}
                         </Button>
                       </div>
                     </DialogContent>
@@ -260,7 +294,7 @@ export default function DashboardPage() {
                   {boards.map((board) => (
                     <Card
                       key={board.id}
-                      className="group cursor-pointer border-slate-800 bg-slate-900/50 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200"
+                      className="group cursor-pointer border-slate-800 bg-slate-900/50 hover:border-slate-500 hover:shadow-lg transition-all duration-200"
                       onClick={() => router.push(`/board/${board.id}`)}
                     >
                       <div
@@ -268,7 +302,7 @@ export default function DashboardPage() {
                         style={{ background: board.background }}
                       />
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-base group-hover:text-blue-400 transition-colors">
+                        <CardTitle className="text-base group-hover:text-white transition-colors">
                           {board.name}
                         </CardTitle>
                       </CardHeader>
@@ -290,7 +324,9 @@ export default function DashboardPage() {
             ) : (
               <div className="text-center py-20 text-slate-500">
                 <LayoutDashboard className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                <p className="text-lg">Select or create a workspace to see your boards</p>
+                <p className="text-lg">
+                  Select or create a workspace to see your boards
+                </p>
               </div>
             )}
           </div>

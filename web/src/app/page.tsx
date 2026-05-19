@@ -84,11 +84,11 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-black p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
             Trello Clone
           </h1>
           <p className="text-muted-foreground mt-2">Organize your projects, your way</p>
@@ -170,7 +170,7 @@ export default function AuthPage() {
                     <p className="text-sm text-red-400">{loginForm.formState.errors.password.message}</p>
                   )}
                 </div>
-                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer" disabled={isLoading}>
                   {isLoading ? "Signing in..." : "Sign in"}
                 </Button>
               </form>
@@ -215,7 +215,7 @@ export default function AuthPage() {
                     <p className="text-sm text-red-400">{registerForm.formState.errors.password.message}</p>
                   )}
                 </div>
-                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-slate-100 text-slate-900 hover:bg-slate-300 cursor-pointer" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Create account"}
                 </Button>
               </form>
@@ -226,7 +226,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-blue-400 hover:text-blue-300 underline-offset-4 hover:underline cursor-pointer"
+                className="text-slate-300 hover:text-white underline-offset-4 hover:underline cursor-pointer"
               >
                 {isLogin ? "Sign up" : "Sign in"}
               </button>
