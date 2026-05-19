@@ -76,3 +76,35 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
 1. [DONE] Initialize React Native (Expo) project.
 2. [DONE] Build Mobile Login and Dashboard screens reusing the API.
 3. [DONE] Build Mobile Board view with mobile-optimized drag-and-drop.
+
+### Phase 6: Notifications & Activity Logs
+1. Create `activities`, `comments`, and `notifications` models in Go (PostgreSQL).
+2. Build APIs for posting comments (`POST /api/cards/:id/comments`) and fetching activity logs.
+3. Set up Resend API client in Go backend for email dispatching (assignments, mentions).
+4. Implement a background worker in Go to scan for due dates daily and email reminders.
+5. Create UI for the Inbox (Bell notification panel) and Activity Log on Web and Mobile clients.
+6. Sync Inbox notifications dynamically via WebSockets.
+
+### Phase 7: Attachments, Covers & Calendar Planner
+1. Integrate Cloudflare R2 client in Go for file uploads (`POST /api/cards/:id/attachments`).
+2. Add attachment rendering and cover selection inside Web and Mobile card modals.
+3. Build a Calendar Planner view page (Web and Mobile) aggregating cards by their due dates.
+
+### Phase 8: Automation Engine (Butler-like rules)
+1. Add rules schema (e.g. When checklist is 100% completed, move card to list X).
+2. Build rule execution engine on the Go backend triggered by card/checklist mutations.
+
+## 5. Feature Comparison with Original Trello
+### Implemented Core Features:
+- **Kanban Board Core**: Workspaces, Boards, Lists, and Cards with full CRUD operations.
+- **Drag-and-Drop**: Web reordering of lists/cards and basic mobile positioning sorting.
+- **Card Details**: Descriptions, multi-item Checklists, Due Dates, and customizable Labels.
+- **Real-Time Updates**: Live synchronization of board state across clients using Go WebSockets.
+- **Multi-Platform**: Next.js Web App and Expo Mobile App (both using monochromatic design system).
+
+### Not Implemented (Future Roadmap - Covered in Phases 6, 7, 8):
+- **Inbox & Notifications**: Bell notification panel for user assignments, comments, and due date alerts (with Resend email notifications).
+- **Planner / Calendar View**: Board calendar layout view showing cards by their due dates.
+- **Activity Log & Comments**: Card comments section and tracking history logs of card movements.
+- **Attachments**: Custom file and background image uploading (planned for Cloudflare R2).
+- **Automation**: Custom automation triggers (e.g., automatically archiving card when all checklists are checked).

@@ -47,22 +47,44 @@ The system consists of three core entry points: the **Go Backend**, the **Next.j
   - When User A performs a mutations (moves card, adds checklist, reorders list), the backend database changes are broadcast as JSON messages to all other WebSocket connections active on that board.
   - The web client receives the socket message and immediately triggers React Query cache invalidation to re-fetch and render the latest board state without requiring manual screen refreshes.
 
+### 1.5 Comments & Activity History (Phase 6)
+- **Card Comments**: Users assigned to a board can write, edit, and delete comments on individual cards. Comments are logged sequentially.
+- **Activity logs**: A read-only historical timeline tracking card events (e.g., "User X moved card from To Do to In Progress", "User Y changed the due date").
+
+### 1.6 Notifications Engine & Email Alerts (Phase 6)
+- **In-App Bell Panel**: Displays unread notifications. Triggers include:
+  - Being assigned/removed from a card.
+  - Mentions in comments (e.g. "@username").
+  - Due date warnings (24 hours prior to deadline).
+- **Email Notifications (Resend)**:
+  - Triggered concurrently when in-app notifications are dispatched.
+  - A background cron worker in Go runs daily to scan the database for cards approaching their `due_date` within 24 hours, emailing a reminder to all assigned card members.
+
+### 1.7 Cloudflare R2 Attachments (Phase 7)
+- **File Uploads**: Cards support attachments (PDFs, docs, images). Files are uploaded to Cloudflare R2 bucket.
+- **Card Cover**: Image attachments can be set as the visual cover of cards displayed on the board canvas.
+
+### 1.8 Board Automation (Phase 8)
+- **Butler Rules**: Users can configure simple reactive automation rules for their boards, matching a **Trigger** to an **Action**.
+  - **Triggers**: Checklist completed (100%), Card moved into list X, or Label applied.
+  - **Actions**: Move card to list Y, mark card due date as complete, or assign user Z.
+
 ---
 
 ## 2. API Routing Specification
 
 ### 2.1 Authentication
 - `POST /api/auth/register` (Public) - Register new user.
-- `POST /api/auth/login` (Public) - User login, returns JWT token.
+- `POST /api/auth/login` (Public) - User login.
 - `GET /api/auth/me` (Protected) - Fetches authenticated user info.
 
 ### 2.2 Workspaces
-- `GET /api/workspaces` (Protected) - Fetch workspaces accessible by the user.
+- `GET /api/workspaces` (Protected) - Fetch workspaces.
 - `POST /api/workspaces` (Protected) - Create new workspace.
 
 ### 2.3 Boards
-- `GET /api/boards/workspace/:workspaceId` (Protected) - Fetch boards inside a workspace.
-- `GET /api/boards/:id` (Protected) - Fetch full details of a board (preloaded with lists, cards, checklists, and labels).
+- `GET /api/boards/workspace/:workspaceId` (Protected) - Fetch boards.
+- `GET /api/boards/:id` (Protected) - Fetch full details of a board.
 - `POST /api/boards` (Protected) - Create new board.
 
 ### 2.4 Lists
@@ -73,23 +95,40 @@ The system consists of three core entry points: the **Go Backend**, the **Next.j
 
 ### 2.5 Cards & Detail Features
 - `POST /api/cards` (Protected) - Create new card.
-- `PUT /api/cards/:id` (Protected) - Update card metadata (name, description, due date).
+- `PUT /api/cards/:id` (Protected) - Update card metadata.
 - `PUT /api/cards/move` (Protected) - Moves cards between positions/lists.
 - `DELETE /api/cards/:id` (Protected) - Delete card.
-- `POST /api/cards/:id/labels` (Protected) - Add label to card.
+- `POST /api/cards/:id/labels` (Protected) - Add label.
 - `DELETE /api/cards/:id/labels/:labelId` (Protected) - Remove label.
 - `POST /api/cards/:id/checklists` (Protected) - Add new checklist.
-- `POST /checklists/:id/items` (Protected) - Add item to checklist.
+- `POST /checklists/:id/items` (Protected) - Add item.
 - `PUT /checklists/items/:id` (Protected) - Toggle/check off item.
 - `DELETE /checklists/:id` (Protected) - Delete checklist.
+
+### 2.6 Comments, Activities, & Notifications (Phase 6)
+- `POST /api/cards/:id/comments` (Protected) - Post a new comment.
+- `DELETE /api/comments/:id` (Protected) - Delete a comment.
+- `GET /api/cards/:id/activities` (Protected) - Fetch activity history for a card.
+- `GET /api/notifications` (Protected) - Get unread notifications for active user.
+- `PUT /api/notifications/:id/read` (Protected) - Mark specific notification as read.
+- `PUT /api/notifications/read-all` (Protected) - Mark all notifications as read.
+
+### 2.7 Attachments (Phase 7)
+- `POST /api/cards/:id/attachments` (Protected) - Upload file attachment.
+- `DELETE /api/attachments/:id` (Protected) - Delete file attachment.
+- `PUT /api/cards/:id/cover` (Protected) - Select an attachment to serve as cover.
+
+### 2.8 Automation Rules (Phase 8)
+- `GET /api/boards/:id/automation-rules` (Protected) - Get board automation rules.
+- `POST /api/boards/:id/automation-rules` (Protected) - Add an automation rule.
+- `PUT /api/automation-rules/:id` (Protected) - Update rule status/criteria.
+- `DELETE /api/automation-rules/:id` (Protected) - Delete rule.
 
 ---
 
 ## 3. Core System Data Flows
 
 ### 3.1 Real-Time Modification Flow
-The diagram below shows how an update made by User A is broadcasted to User B in real-time.
-
 ```mermaid
 sequenceDiagram
     actor UserA as User A (Browser)
@@ -107,14 +146,34 @@ sequenceDiagram
     Note over UserB: Screen rerenders with new card locations
 ```
 
-### 3.2 Mobile Redirection Check Flow
-On app startup, the mobile application determines routing based on active credentials.
+### 3.2 Notification Dispatching Flow (In-App + Resend Email)
+```mermaid
+sequenceDiagram
+    actor Admin as Triggering User
+    participant API as Go Fiber API
+    participant DB as PostgreSQL
+    participant R as Resend API
+    participant WS as WebSocket Hub
+    actor User as Target User
 
+    Admin->>API: POST /api/cards/:id/comments (Mentions @User)
+    API->>DB: Create Notification row (is_read: false)
+    par Notify In-App (Real-time)
+        API->>WS: Broadcast notification event to Target User connection
+        WS->>User: WS message {"type": "new_notification"}
+    and Notify Email (Resend)
+        API->>R: Trigger Email Send (template with comment contents)
+        R->>User: Deliver notification email to Inbox
+    end
+```
+
+### 3.3 Rule Automation Engine Flow
 ```mermaid
 graph TD
-    A([App Launch]) --> B{Token in AsyncStorage?}
-    B -- No --> C[Redirect to /login]
-    B -- Yes --> D[Query GET /api/auth/me]
-    D -- Success 200 --> E[Redirect to /dashboard]
-    D -- Failure 401 --> F[Clear Token & Redirect to /login]
+    A[User triggers Board action] --> B{Action completed?}
+    B -- Yes --> C[Automation Engine checks Active Board Rules]
+    C --> D{Does event match Trigger criteria?}
+    D -- Yes --> E[Execute mapped Action in database]
+    E --> F[Broadcast automation state change via WebSockets]
+    D -- No --> G[No action taken]
 ```
