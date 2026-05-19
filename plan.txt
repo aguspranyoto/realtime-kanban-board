@@ -73,6 +73,6 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
 4. [DONE] Change all color to black, gray and white only
 
 ### Phase 5: Mobile Application
-1. Initialize React Native (Expo) project.
-2. Build Mobile Login and Dashboard screens reusing the API.
-3. Build Mobile Board view with mobile-optimized drag-and-drop.
+1. [DONE] Initialize React Native (Expo) project.
+2. [DONE] Build Mobile Login and Dashboard screens reusing the API.
+3. [DONE] Build Mobile Board view with mobile-optimized drag-and-drop.
