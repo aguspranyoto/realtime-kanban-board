@@ -10,6 +10,7 @@ import (
 	"github.com/aguspranyoto/trello-clone/config"
 	"github.com/aguspranyoto/trello-clone/database"
 	"github.com/aguspranyoto/trello-clone/routes"
+	"github.com/aguspranyoto/trello-clone/workers"
 	"github.com/aguspranyoto/trello-clone/ws"
 )
 
@@ -37,6 +38,9 @@ func main() {
 	// Start WebSocket Hub
 	hub := ws.NewHub()
 	go hub.Run()
+
+	// Start Due Date background worker
+	workers.StartDueDateWorker(cfg, hub)
 
 	// Setup routes
 	routes.Setup(app, cfg, hub)

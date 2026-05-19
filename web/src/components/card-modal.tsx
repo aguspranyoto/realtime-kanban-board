@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import { CalendarIcon, Tag, CheckSquare, Clock, AlignLeft, X } from "lucide-react";
+import { CalendarIcon, Tag, CheckSquare, Clock, AlignLeft, X, MessageSquare } from "lucide-react";
 
 import api from "@/lib/api";
-import type { Card } from "@/lib/types";
+import type { Card, Comment as CommentType } from "@/lib/types";
+import { useAuthStore } from "@/store/auth-store";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -29,12 +31,14 @@ interface CardModalProps {
 
 export function CardModal({ card, isOpen, onClose, boardId, listName }: CardModalProps) {
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
   const [desc, setDesc] = useState(card?.description || "");
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [newLabelName, setNewLabelName] = useState("");
   const [newLabelColor, setNewLabelColor] = useState("#3b82f6");
   const [newChecklistName, setNewChecklistName] = useState("");
   const [newItemNames, setNewItemNames] = useState<Record<string, string>>({});
+  const [newCommentText, setNewCommentText] = useState("");
 
   // Sync state when card changes
   if (card && card.description !== desc && !isEditingDesc) {
@@ -44,6 +48,34 @@ export function CardModal({ card, isOpen, onClose, boardId, listName }: CardModa
   const invalidateBoard = () => {
     queryClient.invalidateQueries({ queryKey: ["board", boardId] });
   };
+
+  // Fetch card comments
+  const { data: comments = [] } = useQuery<CommentType[]>({
+    queryKey: ["card-comments", card?.id],
+    queryFn: () => api.get(`/api/cards/${card?.id}/comments`).then((r) => r.data),
+    enabled: !!card?.id,
+  });
+
+  // Post comment
+  const addComment = useMutation({
+    mutationFn: (text: string) => api.post(`/api/cards/${card?.id}/comments`, { text }),
+    onSuccess: () => {
+      setNewCommentText("");
+      queryClient.invalidateQueries({ queryKey: ["card-comments", card?.id] });
+      invalidateBoard();
+      toast.success("Comment posted");
+    },
+  });
+
+  // Delete comment
+  const deleteComment = useMutation({
+    mutationFn: (commentId: string) => api.delete(`/api/comments/${commentId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["card-comments", card?.id] });
+      invalidateBoard();
+      toast.success("Comment deleted");
+    },
+  });
 
   // Update description
   const updateDesc = useMutation({
@@ -282,6 +314,81 @@ export function CardModal({ card, isOpen, onClose, boardId, listName }: CardModa
                 </div>
               );
             })}
+
+            {/* Comments */}
+            <div className="mt-8 border-t pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <MessageSquare className="w-5 h-5 text-muted-foreground" />
+                <h3 className="text-lg font-semibold text-foreground">Comments</h3>
+              </div>
+
+              {/* Add Comment Input */}
+              <div className="flex gap-3 mb-6">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.avatar_url} />
+                  <AvatarFallback className="bg-secondary text-secondary-foreground text-xs font-bold">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-2">
+                  <textarea
+                    placeholder="Write a comment..."
+                    value={newCommentText}
+                    onChange={(e) => setNewCommentText(e.target.value)}
+                    className="w-full bg-card border rounded-md p-2 text-sm text-foreground focus:outline-none min-h-[60px]"
+                  />
+                  <Button
+                    size="sm"
+                    disabled={!newCommentText.trim() || addComment.isPending}
+                    onClick={() => addComment.mutate(newCommentText.trim())}
+                    className="cursor-pointer"
+                  >
+                    {addComment.isPending ? "Posting..." : "Comment"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Comments List */}
+              <div className="space-y-4">
+                {comments.length > 0 ? (
+                  comments.map((comm) => (
+                    <div key={comm.id} className="flex gap-3 text-sm">
+                      <Avatar className="h-8 w-8 mt-0.5">
+                        <AvatarImage src={comm.user?.avatar_url} />
+                        <AvatarFallback className="bg-secondary text-secondary-foreground text-xs font-bold">
+                          {comm.user?.name?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-foreground">{comm.user?.name}</span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {formatDistanceToNow(new Date(comm.created_at), { addSuffix: true })}
+                            </span>
+                          </div>
+                          {user && comm.user_id === user.id && (
+                            <button
+                              onClick={() => deleteComment.mutate(comm.id)}
+                              className="text-xs text-muted-foreground hover:text-destructive cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                        <p className="bg-muted p-2 rounded-md text-foreground whitespace-pre-wrap leading-relaxed">
+                          {comm.text}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center py-6">
+                    No comments yet. Write a comment above to get started!
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Sidebar */}

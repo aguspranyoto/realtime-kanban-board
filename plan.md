@@ -90,6 +90,7 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
 2. [DONE] Connect Next.js frontend to WebSockets to listen for board changes.
 3. [DONE] Add finishing touches (Card labels, due dates, checklists).
 4. [DONE] Change all color to black, gray and white only
+5. add theme swithcer (light, dark,system)
 
 ### Phase 5: Mobile Application
 
@@ -99,12 +100,12 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
 
 ### Phase 6: Notifications & Activity Logs
 
-1. Create `activities`, `comments`, and `notifications` models in Go (PostgreSQL).
-2. Build APIs for posting comments (`POST /api/cards/:id/comments`) and fetching activity logs.
-3. Set up Resend API client in Go backend for email dispatching (assignments, mentions).
-4. Implement a background worker in Go to scan for due dates daily and email reminders.
-5. Create UI for the Inbox (Bell notification panel) and Activity Log on Web and Mobile clients.
-6. Sync Inbox notifications dynamically via WebSockets.
+1. [DONE] Create `activities`, `comments`, and `notifications` models in Go (PostgreSQL).
+2. [DONE] Build APIs for posting comments (`POST /api/cards/:id/comments`) and fetching activity logs.
+3. [DONE] Set up Resend API client in Go backend for email dispatching (assignments, mentions).
+4. [DONE] Implement a background worker in Go to scan for due dates daily and email reminders.
+5. [DONE] Create UI for the Inbox (Bell notification panel) and Activity Log on Web and Mobile clients.
+6. [DONE] Sync Inbox notifications dynamically via WebSockets.
 
 ### Phase 7: Attachments, Covers & Calendar Planner
 

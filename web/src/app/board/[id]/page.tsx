@@ -11,18 +11,22 @@ import {
 } from "@hello-pangea/dnd";
 import { toast } from "sonner";
 import api from "@/lib/api";
-import type { Board, List, Card as CardType } from "@/lib/types";
+import type { Board, List, Card as CardType, Activity as ActivityType } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ArrowLeft, Plus, X, MoreHorizontal, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, X, MoreHorizontal, Trash2, History } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { NotificationBell } from "@/components/notification-bell";
 import { CardModal } from "@/components/card-modal";
+import { formatDistanceToNow } from "date-fns";
 
 export default function BoardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -34,10 +38,25 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
   const [newListName, setNewListName] = useState("");
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
+  // Parse cardId from URL parameter for direct card modal links
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cardIdParam = params.get("cardId");
+    if (cardIdParam) {
+      setSelectedCardId(cardIdParam);
+    }
+  }, []);
+
   // Fetch board with all data
   const { data: board } = useQuery<Board>({
     queryKey: ["board", id],
     queryFn: () => api.get(`/api/boards/${id}`).then((r) => r.data),
+  });
+
+  // Fetch board activities
+  const { data: activities = [] } = useQuery<ActivityType[]>({
+    queryKey: ["board-activities", id],
+    queryFn: () => api.get(`/api/boards/${id}/activities`).then((r) => r.data),
   });
 
   // WebSocket connection for real-time updates
@@ -59,6 +78,21 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
           // You could optimize this to apply optimistic updates based on data.payload
           // For now, we'll just invalidate the cache to refetch the board data
           queryClient.invalidateQueries({ queryKey: ["board", id] });
+        }
+        if (data.type === "activity_logged") {
+          queryClient.invalidateQueries({ queryKey: ["board-activities", id] });
+        }
+        if (data.type === "comment_added") {
+          queryClient.invalidateQueries({ queryKey: ["board-activities", id] });
+          if (data.payload?.card_id) {
+            queryClient.invalidateQueries({ queryKey: ["card-comments", data.payload.card_id] });
+          }
+        }
+        if (data.type === "comment_deleted") {
+          queryClient.invalidateQueries({ queryKey: ["board-activities", id] });
+          if (data.payload?.card_id) {
+            queryClient.invalidateQueries({ queryKey: ["card-comments", data.payload.card_id] });
+          }
         }
       } catch (err) {
         console.error("Failed to parse websocket message", err);
@@ -189,16 +223,76 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: board.background }}>
       {/* Board Header */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-black/30 backdrop-blur-sm">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push("/dashboard")}
-          className="text-white hover:bg-white/10 cursor-pointer"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back
-        </Button>
-        <h1 className="text-lg font-bold text-white">{board.name}</h1>
+      <div className="flex items-center justify-between px-4 py-3 bg-black/30 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/dashboard")}
+            className="text-white hover:bg-white/10 cursor-pointer"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" /> Back
+          </Button>
+          <h1 className="text-lg font-bold text-white">{board.name}</h1>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Notification Bell */}
+          <div className="bg-white/10 hover:bg-white/20 rounded-lg p-0.5 text-white">
+            <NotificationBell />
+          </div>
+
+          {/* Activity Drawer */}
+          <Sheet>
+            <SheetTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/10 cursor-pointer"
+                />
+              }
+            >
+              <History className="h-4 w-4 mr-1" /> Activity
+            </SheetTrigger>
+            <SheetContent className="bg-popover border text-foreground w-80 sm:w-96">
+              <SheetHeader className="border-b pb-3">
+                <SheetTitle className="text-foreground">Board Activity</SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="h-[calc(100vh-80px)] mt-4">
+                <div className="space-y-4 pr-3">
+                  {activities.length > 0 ? (
+                    activities.map((act) => (
+                      <div key={act.id} className="flex gap-3 text-sm">
+                        <Avatar className="h-7 w-7 mt-0.5">
+                          <AvatarImage src={act.user?.avatar_url} />
+                          <AvatarFallback className="bg-secondary text-secondary-foreground text-[10px] font-bold">
+                            {act.user?.name?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-0.5">
+                          <p className="text-xs">
+                            <span className="font-semibold text-foreground">
+                              {act.user?.name}
+                            </span>{" "}
+                            <span className="text-muted-foreground">{act.details}</span>
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {formatDistanceToNow(new Date(act.created_at), { addSuffix: true })}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-10">
+                      No activity logged yet.
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       {/* Board Canvas */}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/aguspranyoto/trello-clone/database"
 	"github.com/aguspranyoto/trello-clone/models"
+	"github.com/aguspranyoto/trello-clone/utils"
 	"github.com/aguspranyoto/trello-clone/ws"
 )
 
@@ -61,6 +62,9 @@ func (h *CardHandler) Create(c *fiber.Ctx) error {
 	var list models.List
 	if err := database.DB.Select("board_id").First(&list, "id = ?", req.ListID).Error; err == nil {
 		h.Hub.BroadcastToBoard(list.BoardID.String(), "card_created", card)
+		userIDStr := c.Locals("userID").(string)
+		userID, _ := uuid.Parse(userIDStr)
+		utils.LogActivity(list.BoardID, &card.ID, userID, "create_card", "created card '"+card.Name+"'", h.Hub)
 	}
 	
 	return c.Status(fiber.StatusCreated).JSON(card)
@@ -110,6 +114,9 @@ func (h *CardHandler) Update(c *fiber.Ctx) error {
 	var list models.List
 	if err := database.DB.Select("board_id").First(&list, "id = ?", card.ListID).Error; err == nil {
 		h.Hub.BroadcastToBoard(list.BoardID.String(), "card_updated", card)
+		userIDStr := c.Locals("userID").(string)
+		userID, _ := uuid.Parse(userIDStr)
+		utils.LogActivity(list.BoardID, &card.ID, userID, "update_card", "updated card '"+card.Name+"'", h.Hub)
 	}
 	
 	return c.JSON(card)
@@ -147,6 +154,9 @@ func (h *CardHandler) Delete(c *fiber.Ctx) error {
 	var list models.List
 	if err := database.DB.Select("board_id").First(&list, "id = ?", card.ListID).Error; err == nil {
 		h.Hub.BroadcastToBoard(list.BoardID.String(), "card_deleted", id)
+		userIDStr := c.Locals("userID").(string)
+		userID, _ := uuid.Parse(userIDStr)
+		utils.LogActivity(list.BoardID, nil, userID, "delete_card", "deleted card '"+card.Name+"'", h.Hub)
 	}
 	
 	return c.JSON(fiber.Map{"message": "Card deleted successfully"})

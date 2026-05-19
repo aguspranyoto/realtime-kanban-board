@@ -41,6 +41,9 @@ func Connect(cfg *config.Config) {
 		&models.Checklist{},
 		&models.ChecklistItem{},
 		&models.CardMember{},
+		&models.Comment{},
+		&models.Activity{},
+		&models.Notification{},
 	)
 	if err != nil {
 		log.Fatalf("Failed to auto-migrate: %v", err)

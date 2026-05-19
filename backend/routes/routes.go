@@ -35,6 +35,12 @@ func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub) {
 	protected.Get("/auth/me", auth.GetMe)
 	protected.Post("/auth/logout", auth.Logout)
 
+	// Notifications
+	notificationHandler := handlers.NewNotificationHandler()
+	protected.Get("/notifications", notificationHandler.GetNotifications)
+	protected.Put("/notifications/:id/read", notificationHandler.MarkAsRead)
+	protected.Put("/notifications/read-all", notificationHandler.MarkAllAsRead)
+
 	// Workspaces
 	ws := handlers.NewWorkspaceHandler()
 	protected.Post("/workspaces", ws.Create)
@@ -73,4 +79,13 @@ func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub) {
 	protected.Post("/checklists/:id/items", card.AddChecklistItem)
 	protected.Put("/checklists/items/:id", card.UpdateChecklistItem)
 	protected.Delete("/checklists/:id", card.DeleteChecklist)
+
+	// Comments
+	protected.Post("/cards/:id/comments", card.AddComment)
+	protected.Get("/cards/:id/comments", card.GetComments)
+	protected.Delete("/comments/:commentId", card.DeleteComment)
+
+	// Activities
+	protected.Get("/boards/:id/activities", card.GetBoardActivities)
+	protected.Get("/cards/:id/activities", card.GetCardActivities)
 }

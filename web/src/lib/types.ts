@@ -114,3 +114,38 @@ export interface ChecklistItem {
   name: string;
   is_checked: boolean;
 }
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  actor_id: string;
+  card_id?: string;
+  type: string;
+  is_read: boolean;
+  created_at: string;
+  user?: User;
+  actor?: User;
+  card?: Card & { list?: List };
+}
+
+export interface Activity {
+  id: string;
+  board_id: string;
+  card_id?: string;
+  user_id: string;
+  action: string;
+  details: string;
+  created_at: string;
+  user?: User;
+  card?: Card;
+}
+
+export interface Comment {
+  id: string;
+  card_id: string;
+  user_id: string;
+  text: string;
+  created_at: string;
+  updated_at: string;
+  user?: User;
+}

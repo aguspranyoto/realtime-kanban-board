@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { NotificationBell } from "@/components/notification-bell";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -116,38 +117,41 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  className="flex items-center gap-2 cursor-pointer"
-                />
-              }
-            >
-              <Avatar className="h-7 w-7">
-                <AvatarImage src={user.avatar_url} />
-                <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
-                  {user.name?.charAt(0)?.toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden sm:inline text-sm text-foreground">{user.name}</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="bg-popover border"
-            >
-              <DropdownMenuItem className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" /> Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleLogout}
-                className="text-destructive cursor-pointer"
+          <div className="flex items-center gap-4">
+            <NotificationBell />
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-2 cursor-pointer"
+                  />
+                }
               >
-                <LogOut className="mr-2 h-4 w-4" /> Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <Avatar className="h-7 w-7">
+                  <AvatarImage src={user.avatar_url} />
+                  <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
+                    {user.name?.charAt(0)?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="hidden sm:inline text-sm text-foreground">{user.name}</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="bg-popover border"
+              >
+                <DropdownMenuItem className="cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" /> Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-destructive cursor-pointer"
+                >
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </nav>
 
