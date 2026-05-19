@@ -1,83 +1,99 @@
 # Trello Clone System Plan
 
 ## 1. System Architecture & Repository Structure
+
 We will use a **Monorepo** approach to manage the entire full-stack application in a single repository.
-*   `/backend` - Go REST API and WebSocket server.
-*   `/web` - Next.js frontend application.
-*   `/mobile` - React Native (Expo) mobile application.
-*   **Infrastructure:** Docker & Docker Compose to orchestrate and run the Database, Backend, and Web Frontend simultaneously.
+
+- `/backend` - Go REST API and WebSocket server.
+- `/web` - Next.js frontend application.
+- `/mobile` - React Native (Expo) mobile application.
+- **Infrastructure:** Docker & Docker Compose to orchestrate and run the Database, Backend, and Web Frontend simultaneously.
 
 ## 2. Detailed Tech Stack
-*   **Backend:**
-    *   **Language:** Go (Golang)
-    *   **Web Framework:** Fiber (for fast routing and middleware).
-    *   **Database Tooling:** GORM for interacting with PostgreSQL.
-    *   **Real-time:** `gorilla/websocket` for real-time bi-directional communication.
-*   **Database:** PostgreSQL (Relational data structures).
-*   **Object Storage:** Cloudflare R2 (S3-compatible) for storing images, user avatars, board backgrounds, and card attachments.
-*   **Web Frontend:** 
-    *   **Framework:** Next.js (React) using the App Router.
-    *   **Styling:** Tailwind CSS.
-    *   **UI Components:** **shadcn/ui** for rapid, consistent, and accessible UI building.
-    *   **Forms & Validation:** **React Hook Form** combined with **Zod** schema validation.
-    *   **State Management:** **Zustand** for lightweight global state (e.g., user session, theme).
-    *   **Data Fetching:** **React Query** (TanStack Query) for caching API responses, handling loading states, and optimistic UI updates.
-    *   **Drag & Drop:** `@hello-pangea/dnd` for smooth list and card interactions.
-*   **Mobile App:** React Native (Expo) to build for iOS and Android simultaneously using shared logic.
+
+- **Backend:**
+  - **Language:** Go (Golang)
+  - **Web Framework:** Fiber (for fast routing and middleware).
+  - **Database Tooling:** GORM for interacting with PostgreSQL.
+  - **Real-time:** `gorilla/websocket` for real-time bi-directional communication.
+- **Database:** PostgreSQL (Relational data structures).
+- **Object Storage:** Cloudflare R2 (S3-compatible) for storing images, user avatars, board backgrounds, and card attachments.
+- **Web Frontend:**
+  - **Framework:** Next.js (React) using the App Router.
+  - **Styling:** Tailwind CSS.
+  - **UI Components:** **shadcn/ui** for rapid, consistent, and accessible UI building.
+  - **Color Palette:** black, gray, and white.
+  - **Forms & Validation:** **React Hook Form** combined with **Zod** schema validation.
+  - **State Management:** **Zustand** for lightweight global state (e.g., user session, theme).
+  - **Data Fetching:** **React Query** (TanStack Query) for caching API responses, handling loading states, and optimistic UI updates.
+  - **Drag & Drop:** `@hello-pangea/dnd` for smooth list and card interactions.
+- **Mobile App:** React Native (Expo) to build for iOS and Android simultaneously using shared logic.
 
 ## 3. Core Features & Deep Dive
+
 ### A. Authentication & User Management
-*   **Standard Login:** Email and Password authentication (passwords hashed via `bcrypt`).
-*   **Email Verification:** Integration with **Resend** to send verification emails upon registration.
-*   **Social Login:** **Google Auth (OAuth 2.0)** integration for 1-click sign up/in.
-*   **Session Management:** JWT (JSON Web Tokens). 
-    *   *Web:* Stored in secure, HTTP-only cookies to prevent XSS attacks.
-    *   *Mobile:* Stored using Expo SecureStore.
+
+- **Standard Login:** Email and Password authentication (passwords hashed via `bcrypt`).
+- **Email Verification:** Integration with **Resend** to send verification emails upon registration.
+- **Social Login:** **Google Auth (OAuth 2.0)** integration for 1-click sign up/in.
+- **Session Management:** JWT (JSON Web Tokens).
+  - _Web:_ Stored in secure, HTTP-only cookies to prevent XSS attacks.
+  - _Mobile:_ Stored using Expo SecureStore.
 
 ### B. Workspaces & Boards
-*   Users can create multiple Workspaces.
-*   Workspaces contain multiple Boards.
-*   Boards have customizable backgrounds (colors or images) and visibility settings (Private vs. Workspace-visible).
+
+- Users can create multiple Workspaces.
+- Workspaces contain multiple Boards.
+- Boards have customizable backgrounds (colors or images) and visibility settings (Private vs. Workspace-visible).
 
 ### C. Lists & Cards
-*   **Lists:** Horizontal columns within a board. Can be reordered via drag-and-drop.
-*   **Cards:** Tasks within lists. Can be dragged vertically within a list or horizontally across lists.
-*   **Card Details:** Support for descriptions (Markdown), checklists, due dates, custom labels (colors/names), and assigning members.
+
+- **Lists:** Horizontal columns within a board. Can be reordered via drag-and-drop.
+- **Cards:** Tasks within lists. Can be dragged vertically within a list or horizontally across lists.
+- **Card Details:** Support for descriptions (Markdown), checklists, due dates, custom labels (colors/names), and assigning members.
 
 ### D. Real-Time Synchronization
-*   When User A moves a card, the backend broadcasts a WebSocket message. User B's screen (if on the same board) updates instantly without refreshing, handled elegantly via React Query's cache invalidation or manual cache updates.
+
+- When User A moves a card, the backend broadcasts a WebSocket message. User B's screen (if on the same board) updates instantly without refreshing, handled elegantly via React Query's cache invalidation or manual cache updates.
 
 ## 4. Development Roadmap
+
 ### Phase 1: Backend Foundation & Auth (Backend focus)
+
 1. [DONE] Initialize Go project and PostgreSQL database.
 2. [DONE] Setup User models and Authentication routes (Email/Pass + Google OAuth).
 3. [DONE] Implement JWT generation and validation middleware.
 4. [DONE] Create CRUD REST API endpoints for Workspaces and Boards.
 
 ### Phase 2: Web Client Foundation (Frontend focus)
+
 1. [DONE] Initialize Next.js, Tailwind, and shadcn/ui.
 2. [DONE] Set up React Hook Form + Zod for Login/Signup screens.
 3. [DONE] Configure React Query and Zustand.
 4. [DONE] Build Dashboard UI to fetch and display Workspaces and Boards.
 
 ### Phase 3: Core Trello Mechanics (Full-stack)
+
 1. [DONE] Build API endpoints for Lists and Cards.
 2. [DONE] Build the Board Canvas UI in Next.js.
 3. [DONE] Implement drag-and-drop logic for lists and cards on the frontend.
 4. [DONE] Hook up drag-and-drop events to the Go API to persist order changes in the database.
 
 ### Phase 4: Real-time & Polish
+
 1. [DONE] Set up WebSocket server in Go.
 2. [DONE] Connect Next.js frontend to WebSockets to listen for board changes.
 3. [DONE] Add finishing touches (Card labels, due dates, checklists).
 4. [DONE] Change all color to black, gray and white only
 
 ### Phase 5: Mobile Application
+
 1. [DONE] Initialize React Native (Expo) project.
 2. [DONE] Build Mobile Login and Dashboard screens reusing the API.
 3. [DONE] Build Mobile Board view with mobile-optimized drag-and-drop.
 
 ### Phase 6: Notifications & Activity Logs
+
 1. Create `activities`, `comments`, and `notifications` models in Go (PostgreSQL).
 2. Build APIs for posting comments (`POST /api/cards/:id/comments`) and fetching activity logs.
 3. Set up Resend API client in Go backend for email dispatching (assignments, mentions).
@@ -86,16 +102,20 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
 6. Sync Inbox notifications dynamically via WebSockets.
 
 ### Phase 7: Attachments, Covers & Calendar Planner
+
 1. Integrate Cloudflare R2 client in Go for file uploads (`POST /api/cards/:id/attachments`).
 2. Add attachment rendering and cover selection inside Web and Mobile card modals.
 3. Build a Calendar Planner view page (Web and Mobile) aggregating cards by their due dates.
 
 ### Phase 8: Automation Engine (Butler-like rules)
+
 1. Add rules schema (e.g. When checklist is 100% completed, move card to list X).
 2. Build rule execution engine on the Go backend triggered by card/checklist mutations.
 
 ## 5. Feature Comparison with Original Trello
+
 ### Implemented Core Features:
+
 - **Kanban Board Core**: Workspaces, Boards, Lists, and Cards with full CRUD operations.
 - **Drag-and-Drop**: Web reordering of lists/cards and basic mobile positioning sorting.
 - **Card Details**: Descriptions, multi-item Checklists, Due Dates, and customizable Labels.
@@ -103,6 +123,7 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
 - **Multi-Platform**: Next.js Web App and Expo Mobile App (both using monochromatic design system).
 
 ### Not Implemented (Future Roadmap - Covered in Phases 6, 7, 8):
+
 - **Inbox & Notifications**: Bell notification panel for user assignments, comments, and due date alerts (with Resend email notifications).
 - **Planner / Calendar View**: Board calendar layout view showing cards by their due dates.
 - **Activity Log & Comments**: Card comments section and tracking history logs of card movements.
