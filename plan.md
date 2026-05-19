@@ -22,7 +22,12 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
   - **Framework:** Next.js (React) using the App Router.
   - **Styling:** Tailwind CSS.
   - **UI Components:** **shadcn/ui** for rapid, consistent, and accessible UI building.
-  - **Color Palette:** black, gray, and white.
+  - **Color Palette:** Graphite Milk (Minimalist Monochromatic):
+    - Milk White: `#FAFAF8` (Primary background)
+    - Soft Gray: `#DADADA` (Borders and card outlines)
+    - Concrete Gray: `#B0B3B8` (Secondary text and inactive icons)
+    - Graphite Gray: `#43464B` (Secondary buttons, list headers, and hover states)
+    - Obsidian Black: `#0F1012` (Primary text, headers, and active states)
   - **Forms & Validation:** **React Hook Form** combined with **Zod** schema validation.
   - **State Management:** **Zustand** for lightweight global state (e.g., user session, theme).
   - **Data Fetching:** **React Query** (TanStack Query) for caching API responses, handling loading states, and optimistic UI updates.
