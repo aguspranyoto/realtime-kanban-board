@@ -16,7 +16,6 @@ import (
 type R2Client struct {
 	client     *s3.Client
 	bucketName string
-	publicURL  string
 }
 
 // NewR2Client creates a new R2 client from application config.
@@ -44,24 +43,14 @@ func NewR2Client(cfg *appconfig.Config) (*R2Client, error) {
 		o.UsePathStyle = true
 	})
 
-	// Public URL uses the custom domain or R2 public bucket URL pattern
-	publicURL := fmt.Sprintf("https://pub-%s.r2.dev/%s", cfg.R2AccountID, cfg.R2BucketName)
-	if cfg.R2PublicURL != "" {
-		baseUrl := cfg.R2PublicURL
-		if len(baseUrl) > 0 && baseUrl[len(baseUrl)-1] == '/' {
-			baseUrl = baseUrl[:len(baseUrl)-1]
-		}
-		publicURL = fmt.Sprintf("%s/%s", baseUrl, cfg.R2BucketName)
-	}
-
 	return &R2Client{
 		client:     client,
 		bucketName: cfg.R2BucketName,
-		publicURL:  publicURL,
 	}, nil
 }
 
-// UploadFile uploads a multipart file to R2 and returns the public URL.
+// UploadFile uploads a multipart file to R2 and returns the proxy URL path.
+// The returned URL is a relative path (/api/files/<key>) to be served through the backend proxy.
 func (r *R2Client) UploadFile(ctx context.Context, key string, file multipart.File, size int64, mimeType string) (string, error) {
 	_, err := r.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(r.bucketName),
@@ -74,8 +63,21 @@ func (r *R2Client) UploadFile(ctx context.Context, key string, file multipart.Fi
 		return "", fmt.Errorf("failed to upload to R2: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/%s", r.publicURL, key)
+	// Return relative URL for backend file proxy
+	url := fmt.Sprintf("/api/files/%s", key)
 	return url, nil
+}
+
+// GetFile fetches a file from R2 by key and returns the response body, content type, and content length.
+func (r *R2Client) GetFile(ctx context.Context, key string) (*s3.GetObjectOutput, error) {
+	output, err := r.client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(r.bucketName),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get object from R2: %w", err)
+	}
+	return output, nil
 }
 
 // DeleteFile removes an object from R2 by key.

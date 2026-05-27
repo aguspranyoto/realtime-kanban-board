@@ -98,6 +98,12 @@ func (h *AttachmentHandler) GetAll(c *fiber.Ctx) error {
 	cardID := c.Params("id")
 	var attachments []models.Attachment
 	database.DB.Preload("User").Where("card_id = ?", cardID).Order("created_at DESC").Find(&attachments)
+
+	// Rewrite old R2 public URLs to proxy URLs
+	for i := range attachments {
+		attachments[i].URL = rewriteR2URL(attachments[i].URL)
+	}
+
 	return c.JSON(attachments)
 }
 
@@ -141,8 +147,9 @@ func (h *AttachmentHandler) SetCover(c *fiber.Ctx) error {
 	// Set this attachment as cover
 	database.DB.Model(&attachment).Update("is_cover", true)
 
-	// Also set cover_url on card
-	database.DB.Model(&models.Card{}).Where("id = ?", attachment.CardID).Update("cover_url", attachment.URL)
+	// Also set cover_url on card (using proxy URL)
+	proxyURL := rewriteR2URL(attachment.URL)
+	database.DB.Model(&models.Card{}).Where("id = ?", attachment.CardID).Update("cover_url", proxyURL)
 
 	// Broadcast
 	var card models.Card
@@ -150,7 +157,7 @@ func (h *AttachmentHandler) SetCover(c *fiber.Ctx) error {
 		h.Hub.BroadcastToBoard(card.List.BoardID.String(), "card_updated", card.ID)
 	}
 
-	return c.JSON(fiber.Map{"message": "Cover set", "url": attachment.URL})
+	return c.JSON(fiber.Map{"message": "Cover set", "url": proxyURL})
 }
 
 // RemoveCover handles DELETE /api/cards/:id/cover
@@ -203,4 +210,18 @@ func extractKeyFromURL(url string) string {
 		return ""
 	}
 	return url[idx:]
+}
+
+// rewriteR2URL converts old R2 public URLs to backend proxy URLs.
+// If the URL is already a relative proxy URL, it is returned as-is.
+func rewriteR2URL(url string) string {
+	if strings.HasPrefix(url, "/api/files/") {
+		return url
+	}
+	// Extract the object key from old R2 public URLs
+	key := extractKeyFromURL(url)
+	if key != "" {
+		return "/api/files/" + key
+	}
+	return url
 }

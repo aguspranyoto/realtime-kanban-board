@@ -30,6 +30,14 @@ import { AutomationModal } from "@/components/automation-modal";
 import { formatDistanceToNow } from "date-fns";
 import { ModeToggle } from "@/components/mode-toggle";
 
+// Resolve relative file URLs (e.g. /api/files/...) to the backend API base URL
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+function getFileUrl(url: string): string {
+  if (!url) return url;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${API_BASE}${url}`;
+}
+
 export default function BoardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -386,7 +394,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                             {card.cover_url && (
                                               <div className="w-full h-28 overflow-hidden bg-muted">
                                                 <img
-                                                  src={card.cover_url}
+                                                  src={getFileUrl(card.cover_url)}
                                                   alt="cover"
                                                   className="w-full h-full object-cover"
                                                 />

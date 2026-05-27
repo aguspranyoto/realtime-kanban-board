@@ -90,6 +90,16 @@ func (h *BoardHandler) GetByID(c *fiber.Ctx) error {
 	if result.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Board not found"})
 	}
+
+	// Rewrite old R2 public URLs in card cover_url fields
+	for i := range board.Lists {
+		for j := range board.Lists[i].Cards {
+			if board.Lists[i].Cards[j].CoverURL != "" {
+				board.Lists[i].Cards[j].CoverURL = rewriteR2URL(board.Lists[i].Cards[j].CoverURL)
+			}
+		}
+	}
+
 	return c.JSON(board)
 }
 

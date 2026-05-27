@@ -31,6 +31,10 @@ func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub, r2 *storage.R2Client
 	api.Use("/ws", wsHandler.Upgrade)
 	api.Get("/ws/board/:boardId", websocket.New(wsHandler.HandleConnection))
 
+	// File proxy route (public – serves R2 files through the backend)
+	fileProxy := handlers.NewFileProxyHandler(r2)
+	api.Get("/files/*", fileProxy.Serve)
+
 	// Protected routes
 	protected := api.Group("", middleware.AuthMiddleware(cfg))
 	protected.Get("/auth/me", auth.GetMe)

@@ -85,6 +85,15 @@ func (h *CardHandler) GetByID(c *fiber.Ctx) error {
 	if result.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Card not found"})
 	}
+
+	// Rewrite old R2 public URLs
+	if card.CoverURL != "" {
+		card.CoverURL = rewriteR2URL(card.CoverURL)
+	}
+	for i := range card.Attachments {
+		card.Attachments[i].URL = rewriteR2URL(card.Attachments[i].URL)
+	}
+
 	return c.JSON(card)
 }
 

@@ -52,6 +52,14 @@ function isImageMime(mimeType: string): boolean {
   return mimeType.startsWith("image/");
 }
 
+// Resolve relative file URLs (e.g. /api/files/...) to the backend API base URL
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+function getFileUrl(url: string): string {
+  if (!url) return url;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${API_BASE}${url}`;
+}
+
 export function CardModal({ card, isOpen, onClose, boardId, listName }: CardModalProps) {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
@@ -239,7 +247,7 @@ export function CardModal({ card, isOpen, onClose, boardId, listName }: CardModa
         {(card.cover_url || coverAttachment?.url) && (
           <div className="relative w-full h-40 overflow-hidden rounded-t-lg">
             <img
-              src={card.cover_url || coverAttachment?.url}
+              src={getFileUrl(card.cover_url || coverAttachment?.url || "")}
               alt="Card cover"
               className="w-full h-full object-cover"
             />
@@ -435,7 +443,7 @@ export function CardModal({ card, isOpen, onClose, boardId, listName }: CardModa
                         {/* Thumbnail or icon */}
                         {isImageMime(att.mime_type) ? (
                           <div className="w-14 h-10 rounded overflow-hidden flex-shrink-0 bg-border">
-                            <img src={att.url} alt={att.name} className="w-full h-full object-cover" />
+                            <img src={getFileUrl(att.url)} alt={att.name} className="w-full h-full object-cover" />
                           </div>
                         ) : (
                           <div className="w-14 h-10 rounded bg-border flex items-center justify-center flex-shrink-0">
@@ -450,7 +458,7 @@ export function CardModal({ card, isOpen, onClose, boardId, listName }: CardModa
                           </p>
                           <div className="flex gap-3 mt-1.5">
                             <a
-                              href={att.url}
+                              href={getFileUrl(att.url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors cursor-pointer"
