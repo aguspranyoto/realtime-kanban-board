@@ -197,15 +197,10 @@ func sanitizeFilename(name string) string {
 }
 
 func extractKeyFromURL(url string) string {
-	// URL format: https://pub-<id>.r2.dev/<bucket>/<key>
-	parts := strings.SplitN(url, ".r2.dev/", 2)
-	if len(parts) != 2 {
+	// Find the start of the object key path
+	idx := strings.Index(url, "attachments/")
+	if idx == -1 {
 		return ""
 	}
-	// Remove bucket prefix
-	keyParts := strings.SplitN(parts[1], "/", 2)
-	if len(keyParts) != 2 {
-		return ""
-	}
-	return keyParts[1]
+	return url[idx:]
 }

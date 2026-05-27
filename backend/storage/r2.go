@@ -46,6 +46,13 @@ func NewR2Client(cfg *appconfig.Config) (*R2Client, error) {
 
 	// Public URL uses the custom domain or R2 public bucket URL pattern
 	publicURL := fmt.Sprintf("https://pub-%s.r2.dev/%s", cfg.R2AccountID, cfg.R2BucketName)
+	if cfg.R2PublicURL != "" {
+		baseUrl := cfg.R2PublicURL
+		if len(baseUrl) > 0 && baseUrl[len(baseUrl)-1] == '/' {
+			baseUrl = baseUrl[:len(baseUrl)-1]
+		}
+		publicURL = fmt.Sprintf("%s/%s", baseUrl, cfg.R2BucketName)
+	}
 
 	return &R2Client{
 		client:     client,

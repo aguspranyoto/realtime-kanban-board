@@ -31,6 +31,7 @@ type Config struct {
 	R2AccessKeyID     string
 	R2SecretAccessKey  string
 	R2BucketName      string
+	R2PublicURL       string
 }
 
 // Load reads the .env file and returns a Config struct.
@@ -54,6 +55,7 @@ func Load() *Config {
 		R2AccessKeyID:      getEnv("R2_ACCESS_KEY_ID", ""),
 		R2SecretAccessKey:  getEnv("R2_SECRET_ACCESS_KEY", ""),
 		R2BucketName:       getEnv("R2_BUCKET_NAME", ""),
+		R2PublicURL:        getEnv("R2_PUBLIC_URL", ""),
 	}
 }
 
