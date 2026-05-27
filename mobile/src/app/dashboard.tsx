@@ -9,11 +9,14 @@ import {
   Modal,
   TextInput,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../lib/api';
 import { removeToken } from '../lib/storage';
+import { NotificationBell } from '../components/NotificationBell';
+import { LogOut, Plus } from 'lucide-react-native';
 
 interface Board {
   id: string;
@@ -34,6 +37,10 @@ export default function DashboardScreen() {
   const [boards, setBoards] = useState<Board[]>([]);
   const [loading, setLoading] = useState(true);
   const [boardsLoading, setBoardsLoading] = useState(false);
+  const { width } = useWindowDimensions();
+
+  // Dynamic grid column calculation: 1 column for very small screens, 2 for most phones, more for tablets
+  const numColumns = width < 380 ? 1 : Math.floor(width / 180);
 
   // Modal states
   const [wsModalVisible, setWsModalVisible] = useState(false);
@@ -131,17 +138,22 @@ export default function DashboardScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Trello Clone</Text>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <NotificationBell />
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <LogOut size={14} color="#ef4444" />
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Workspaces List */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Workspaces</Text>
-          <TouchableOpacity onPress={() => setWsModalVisible(true)}>
-            <Text style={styles.addText}>+ New</Text>
+          <TouchableOpacity onPress={() => setWsModalVisible(true)} style={styles.actionButton}>
+            <Plus size={16} color="#f8fafc" />
+            <Text style={styles.actionButtonText}>New</Text>
           </TouchableOpacity>
         </View>
 
@@ -180,8 +192,9 @@ export default function DashboardScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Boards</Text>
           {selectedWs && (
-            <TouchableOpacity onPress={() => setBoardModalVisible(true)}>
-              <Text style={styles.addText}>+ New Board</Text>
+            <TouchableOpacity onPress={() => setBoardModalVisible(true)} style={styles.actionButton}>
+              <Plus size={16} color="#f8fafc" />
+              <Text style={styles.actionButtonText}>New Board</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -194,13 +207,21 @@ export default function DashboardScreen() {
           </Text>
         ) : (
           <FlatList
+            key={numColumns} // Force re-render when numColumns changes
             data={boards}
             keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={styles.boardRow}
+            numColumns={numColumns}
+            columnWrapperStyle={numColumns > 1 ? styles.boardRow : undefined}
             renderItem={({ item }) => (
               <TouchableOpacity
-                style={[styles.boardCard, { backgroundColor: item.background || '#1e293b' }]}
+                style={[
+                  styles.boardCard, 
+                  { 
+                    backgroundColor: item.background || '#1e293b',
+                    width: numColumns > 1 ? `${100 / numColumns - 2}%` : '100%',
+                    marginBottom: numColumns === 1 ? 12 : 0,
+                  }
+                ]}
                 onPress={() => router.push(`/board/${item.id}`)}
               >
                 <Text style={styles.boardCardText}>{item.name}</Text>
@@ -290,7 +311,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingBottom: 16,
     marginBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
   },
   headerTitle: {
     fontSize: 24,
@@ -298,11 +322,20 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   logoutButton: {
-    padding: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#ef4444',
+    borderRadius: 6,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
   },
   logoutText: {
     color: '#ef4444',
     fontWeight: '600',
+    fontSize: 14,
   },
   section: {
     marginBottom: 24,
@@ -318,7 +351,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#e2e8f0',
   },
-  addText: {
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#1e293b',
+    borderWidth: 1,
+    borderColor: '#334155',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  actionButtonText: {
     color: '#f8fafc',
     fontWeight: '600',
     fontSize: 14,
@@ -354,7 +398,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   boardCard: {
-    width: '48%',
     aspectRatio: 1.6,
     borderRadius: 8,
     padding: 12,

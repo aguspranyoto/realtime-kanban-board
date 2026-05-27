@@ -10,10 +10,15 @@ import {
   Modal,
   Alert,
   Platform,
+  Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../../lib/api';
+import { CardModal } from '../../components/CardModal';
+import { NotificationBell } from '../../components/NotificationBell';
+import { ArrowLeft, Plus, Activity, Anchor, Aperture, Award, Book, Briefcase, Camera, Compass } from 'lucide-react-native';
+import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 
 interface Card {
   id: string;
@@ -22,6 +27,16 @@ interface Card {
   description: string;
   position: number;
   due_date: string | null;
+  cover_url?: string;
+  labels?: {
+    id: string;
+    label_id: string;
+    label: {
+      id: string;
+      name: string;
+      color: string;
+    }
+  }[];
 }
 
 interface List {
@@ -39,6 +54,23 @@ interface Board {
   lists: List[];
 }
 
+const getFileUrl = (url: string) => {
+  if (!url) return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  let baseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080';
+  if (Platform.OS === 'android' && baseUrl.includes('localhost')) {
+    baseUrl = baseUrl.replace('localhost', '10.0.2.2');
+  }
+  return `${baseUrl}${url}`;
+};
+
+const LABEL_ICONS = [Activity, Anchor, Aperture, Award, Book, Briefcase, Camera, Compass];
+const getIconForLabel = (id: string) => {
+  if (!id) return LABEL_ICONS[0];
+  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return LABEL_ICONS[hash % LABEL_ICONS.length];
+};
+
 export default function BoardScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
@@ -55,10 +87,8 @@ export default function BoardScreen() {
   const [activeListId, setActiveListId] = useState<string | null>(null);
 
   // Card detail modal
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [cardDetailVisible, setCardDetailVisible] = useState(false);
-  const [cardDesc, setCardDesc] = useState('');
-  const [isEditingDesc, setIsEditingDesc] = useState(false);
 
   const fetchBoard = async () => {
     try {
@@ -139,81 +169,29 @@ export default function BoardScreen() {
     }
   };
 
-  const handleMoveCard = async (cardId: string, direction: 'up' | 'down') => {
+  const handleDragEnd = async (listId: string, data: Card[]) => {
     if (!board) return;
-    // Find card and list
-    let currentList: List | null = null;
-    let cardIndex = -1;
-    for (const l of board.lists) {
-      const idx = l.cards.findIndex((c) => c.id === cardId);
-      if (idx !== -1) {
-        currentList = l;
-        cardIndex = idx;
-        break;
-      }
-    }
-
-    if (!currentList) return;
-
-    const targetIdx = direction === 'up' ? cardIndex - 1 : cardIndex + 1;
-    if (targetIdx < 0 || targetIdx >= currentList.cards.length) return;
-
-    // Swap positions
-    const cards = [...currentList.cards].sort((a, b) => a.position - b.position);
-    const temp = cards[cardIndex].position;
-    cards[cardIndex].position = cards[targetIdx].position;
-    cards[targetIdx].position = temp;
+    
+    // Update local state optimistically
+    setBoard({
+      ...board,
+      lists: board.lists.map((l) =>
+        l.id === listId ? { ...l, cards: data } : l
+      ),
+    });
 
     try {
-      // Optimistic update locally
-      setBoard({
-        ...board,
-        lists: board.lists.map((l) =>
-          l.id === currentList!.id ? { ...l, cards: [...cards] } : l
-        ),
-      });
-
-      // Persist moving
       await api.put('/api/cards/move', {
-        card_ids: cards.map((c) => c.id),
-        list_id: currentList.id,
+        card_ids: data.map((c) => c.id),
+        list_id: listId,
       });
     } catch (err) {
       fetchBoard();
-    }
-  };
-
-  const handleMoveCardToList = async (cardId: string, targetListId: string) => {
-    if (!board) return;
-    try {
-      await api.put(`/api/cards/${cardId}`, {
-        list_id: targetListId,
-      });
-      setCardDetailVisible(false);
-      fetchBoard();
-    } catch (err) {
-      Alert.alert('Error', 'Failed to move card');
-    }
-  };
-
-  const handleUpdateCardDesc = async () => {
-    if (!selectedCard) return;
-    try {
-      await api.put(`/api/cards/${selectedCard.id}`, {
-        description: cardDesc,
-      });
-      setSelectedCard({ ...selectedCard, description: cardDesc });
-      setIsEditingDesc(false);
-      fetchBoard();
-    } catch (err) {
-      Alert.alert('Error', 'Failed to update description');
     }
   };
 
   const handleOpenCard = (card: Card) => {
-    setSelectedCard(card);
-    setCardDesc(card.description || '');
-    setIsEditingDesc(false);
+    setSelectedCardId(card.id);
     setCardDetailVisible(true);
   };
 
@@ -231,15 +209,18 @@ export default function BoardScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: '#0f172a' }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← Back</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ padding: 8 }}>
+          <ArrowLeft size={24} color="#cbd5e1" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {board.name}
         </Text>
-        <TouchableOpacity onPress={() => setNewListModalVisible(true)}>
-          <Text style={styles.newListButton}>+ List</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+          <NotificationBell />
+          <TouchableOpacity onPress={() => setNewListModalVisible(true)} style={{ padding: 8 }}>
+            <Plus size={24} color="#f8fafc" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Board Canvas */}
@@ -256,49 +237,75 @@ export default function BoardScreen() {
                 <Text style={styles.listTitle}>{list.name}</Text>
               </View>
 
-              <ScrollView style={styles.cardsContainer} showsVerticalScrollIndicator={false}>
-                {list.cards
-                  ?.sort((a, b) => a.position - b.position)
-                  .map((card, idx) => (
+              <DraggableFlatList
+                style={styles.cardsContainer}
+                data={[...(list.cards || [])].sort((a, b) => a.position - b.position)}
+                onDragEnd={({ data }) => handleDragEnd(list.id, data)}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item: card, drag, isActive }) => (
+                  <ScaleDecorator>
                     <TouchableOpacity
-                      key={card.id}
-                      style={styles.card}
+                      activeOpacity={1}
+                      onLongPress={drag}
+                      disabled={isActive}
+                      style={[
+                        styles.card,
+                        { opacity: isActive ? 0.7 : 1, elevation: isActive ? 5 : 0 }
+                      ]}
                       onPress={() => handleOpenCard(card)}
                     >
-                      <Text style={styles.cardText}>{card.name}</Text>
-
-                      {/* Monochromatic sorting indicators */}
-                      <View style={styles.cardActionsRow}>
-                        {idx > 0 && (
-                          <TouchableOpacity
-                            style={styles.sortButton}
-                            onPress={() => handleMoveCard(card.id, 'up')}
-                          >
-                            <Text style={styles.sortButtonText}>▲</Text>
-                          </TouchableOpacity>
-                        )}
-                        {idx < list.cards.length - 1 && (
-                          <TouchableOpacity
-                            style={styles.sortButton}
-                            onPress={() => handleMoveCard(card.id, 'down')}
-                          >
-                            <Text style={styles.sortButtonText}>▼</Text>
-                          </TouchableOpacity>
-                        )}
+                      {card.cover_url ? (
+                        <Image
+                          source={{ uri: getFileUrl(card.cover_url) }}
+                          style={styles.cardCover}
+                        />
+                      ) : null}
+                      <View style={styles.cardBody}>
+                        <View style={styles.cardContent}>
+                          {card.labels && card.labels.length > 0 && (
+                            <View style={styles.labelsContainer}>
+                              {card.labels.map((cl) => {
+                                const Icon = getIconForLabel(cl.label_id);
+                                return (
+                                  <View key={cl.id} style={styles.labelWrapper}>
+                                    <View style={[styles.labelIconSide, { backgroundColor: cl.label?.color || '#cbd5e1' }]}>
+                                      <Icon size={12} color="rgba(0,0,0,0.6)" />
+                                    </View>
+                                    <View style={[styles.labelTextSide, { backgroundColor: cl.label?.color || '#cbd5e1', opacity: 0.8 }]}>
+                                      <Text style={styles.labelText} numberOfLines={1}>{cl.label?.name}</Text>
+                                    </View>
+                                  </View>
+                                );
+                              })}
+                            </View>
+                          )}
+                          <Text style={styles.cardText}>{card.name}</Text>
+                          
+                          {card.due_date && (
+                            <View style={styles.dueDateBadge}>
+                              <Text style={styles.dueDateText}>
+                                {new Date(card.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
                     </TouchableOpacity>
-                  ))}
-
-                <TouchableOpacity
-                  style={styles.addCardButton}
-                  onPress={() => {
-                    setActiveListId(list.id);
-                    setNewCardModalVisible(true);
-                  }}
-                >
-                  <Text style={styles.addCardText}>+ Add Card</Text>
-                </TouchableOpacity>
-              </ScrollView>
+                  </ScaleDecorator>
+                )}
+                ListFooterComponent={() => (
+                  <TouchableOpacity
+                    style={styles.addCardButton}
+                    onPress={() => {
+                      setActiveListId(list.id);
+                      setNewCardModalVisible(true);
+                    }}
+                  >
+                    <Text style={styles.addCardText}>+ Add Card</Text>
+                  </TouchableOpacity>
+                )}
+              />
             </View>
           ))}
       </ScrollView>
@@ -363,77 +370,16 @@ export default function BoardScreen() {
         </View>
       </Modal>
 
-      {/* Card Details Modal */}
-      {selectedCard && (
-        <Modal visible={cardDetailVisible} transparent animationType="slide">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>{selectedCard.name}</Text>
-
-              {/* Description */}
-              <Text style={styles.modalSectionTitle}>Description</Text>
-              {isEditingDesc ? (
-                <View>
-                  <TextInput
-                    style={[styles.modalInput, styles.descInput]}
-                    multiline
-                    value={cardDesc}
-                    onChangeText={setCardDesc}
-                    placeholder="Add description..."
-                    placeholderTextColor="#64748b"
-                  />
-                  <View style={styles.modalActions}>
-                    <TouchableOpacity
-                      style={[styles.modalButton, styles.modalButtonCancel]}
-                      onPress={() => setIsEditingDesc(false)}
-                    >
-                      <Text style={styles.modalButtonCancelText}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.modalButton} onPress={handleUpdateCardDesc}>
-                      <Text style={styles.modalButtonText}>Save</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={styles.descContainer}
-                  onPress={() => setIsEditingDesc(true)}
-                >
-                  <Text style={styles.descText}>
-                    {selectedCard.description || 'No description yet. Tap to add...'}
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              {/* Move to another List */}
-              <Text style={styles.modalSectionTitle}>Move to list</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
-                {board.lists
-                  .filter((l) => l.id !== selectedCard.list_id)
-                  .map((l) => (
-                    <TouchableOpacity
-                      key={l.id}
-                      style={styles.moveListOption}
-                      onPress={() => handleMoveCardToList(selectedCard.id, l.id)}
-                    >
-                      <Text style={styles.moveListOptionText}>{l.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-              </ScrollView>
-
-              <TouchableOpacity
-                style={[styles.modalButton, { marginTop: 24, alignSelf: 'stretch', marginLeft: 0 }]}
-                onPress={() => {
-                  setCardDetailVisible(false);
-                  setSelectedCard(null);
-                }}
-              >
-                <Text style={[styles.modalButtonText, { textAlign: 'center' }]}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      )}
+      {/* Card Details Modal (New full-featured component) */}
+      <CardModal
+        visible={cardDetailVisible}
+        cardId={selectedCardId}
+        onClose={() => {
+          setCardDetailVisible(false);
+          setSelectedCardId(null);
+        }}
+        onUpdate={fetchBoard}
+      />
     </SafeAreaView>
   );
 }
@@ -454,8 +400,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    marginBottom: 16,
     borderBottomWidth: 1,
-    borderColor: '#1e293b',
+    borderBottomColor: '#334155',
   },
   backButton: {
     color: '#cbd5e1',
@@ -504,18 +451,71 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#0f172a',
     borderRadius: 8,
-    padding: 12,
     marginBottom: 8,
     borderWidth: 1,
     borderColor: '#334155',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  },
+  cardCover: {
+    width: '100%',
+    height: 80,
+    backgroundColor: '#1e293b',
+  },
+  cardBody: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    padding: 12,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  labelsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginBottom: 6,
+  },
+  labelWrapper: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    borderRadius: 4,
+    overflow: 'hidden',
+    height: 20,
+    maxWidth: 120,
+  },
+  labelIconSide: {
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  labelTextSide: {
+    paddingHorizontal: 6,
+    justifyContent: 'center',
+  },
+  labelText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  dueDateBadge: {
+    marginTop: 8,
+    backgroundColor: '#1e293b',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  dueDateText: {
+    color: '#94a3b8',
+    fontSize: 10,
   },
   cardText: {
     color: '#ffffff',
     fontSize: 14,
-    flex: 1,
   },
   cardActionsRow: {
     flexDirection: 'row',
@@ -573,33 +573,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     marginBottom: 12,
-  },
-  descInput: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  descContainer: {
-    backgroundColor: '#0f172a',
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#475569',
-    minHeight: 60,
-  },
-  descText: {
-    color: '#cbd5e1',
-    fontSize: 14,
-  },
-  moveListOption: {
-    backgroundColor: '#334155',
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginRight: 8,
-  },
-  moveListOptionText: {
-    color: '#ffffff',
-    fontSize: 14,
   },
   modalActions: {
     flexDirection: 'row',
