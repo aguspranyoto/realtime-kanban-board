@@ -65,16 +65,16 @@ func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub, r2 *storage.R2Client
 	// Lists
 	list := handlers.NewListHandler(hub)
 	protected.Post("/lists", list.Create)
-	protected.Put("/lists/:id", list.Update)
 	protected.Put("/lists/reorder", list.Reorder)
+	protected.Put("/lists/:id", list.Update)
 	protected.Delete("/lists/:id", list.Delete)
 
 	// Cards
 	card := handlers.NewCardHandler(hub)
 	protected.Post("/cards", card.Create)
+	protected.Put("/cards/move", card.MoveCards)
 	protected.Get("/cards/:id", card.GetByID)
 	protected.Put("/cards/:id", card.Update)
-	protected.Put("/cards/move", card.MoveCards)
 	protected.Delete("/cards/:id", card.Delete)
 
 	// Card Details (Labels & Checklists)

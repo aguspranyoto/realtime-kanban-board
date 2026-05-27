@@ -116,12 +116,12 @@ func (h *CardHandler) Update(c *fiber.Ctx) error {
 		lid, _ := uuid.Parse(req.ListID)
 		card.ListID = lid
 	}
-	if req.DueDate != "" {
+	if req.DueDate == "null" {
+		card.DueDate = nil
+	} else if req.DueDate != "" {
 		if t, err := time.Parse(time.RFC3339, req.DueDate); err == nil {
 			card.DueDate = &t
 		}
-	} else if req.DueDate == "null" {
-		card.DueDate = nil
 	}
 	database.DB.Save(&card)
 	

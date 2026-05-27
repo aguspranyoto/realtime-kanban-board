@@ -15,7 +15,7 @@ import type { Board, List, Card as CardType, Activity as ActivityType } from "@/
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ArrowLeft, Plus, X, MoreHorizontal, Trash2, History, Bot } from "lucide-react";
+import { ArrowLeft, Plus, X, MoreHorizontal, Trash2, History, Bot, Activity, Anchor, Aperture, Award, Book, Briefcase, Camera, Compass } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +37,13 @@ function getFileUrl(url: string): string {
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   return `${API_BASE}${url}`;
 }
+
+const LABEL_ICONS = [Activity, Anchor, Aperture, Award, Book, Briefcase, Camera, Compass];
+const getIconForLabel = (id: string) => {
+  if (!id) return LABEL_ICONS[0];
+  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return LABEL_ICONS[hash % LABEL_ICONS.length];
+};
 
 export default function BoardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -342,7 +349,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                           className="w-72 shrink-0"
                         >
                           {/* List */}
-                          <div className="bg-card/90 backdrop-blur rounded-xl border shadow-lg">
+                          <div className="bg-card/90 rounded-xl border shadow-lg">
                             {/* List Header */}
                             <div
                               {...provided.dragHandleProps}
@@ -386,8 +393,8 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                             {...provided.draggableProps}
                                             {...provided.dragHandleProps}
                                             onClick={() => setSelectedCardId(card.id)}
-                                            className={`bg-card border rounded-lg text-sm text-foreground hover:border-foreground/50 cursor-pointer transition-all overflow-hidden ${
-                                              snapshot.isDragging ? "shadow-xl shadow-black/20 rotate-2" : ""
+                                            className={`bg-card border rounded-lg text-sm text-foreground hover:border-foreground/50 cursor-pointer transition-colors overflow-hidden ${
+                                              snapshot.isDragging ? "shadow-xl shadow-black/20" : ""
                                             }`}
                                           >
                                             {/* Cover Image */}
@@ -403,14 +410,26 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                             <div className="px-3 py-2">
                                               {/* Labels */}
                                               {card.labels && card.labels.length > 0 && (
-                                                <div className="flex gap-1 mb-1.5">
-                                                  {card.labels.map((cl) => (
-                                                    <div
-                                                      key={cl.id}
-                                                      className="h-2 w-8 rounded-full"
-                                                      style={{ backgroundColor: cl.label?.color }}
-                                                    />
-                                                  ))}
+                                                <div className="flex flex-wrap gap-1 mb-1.5">
+                                                  {card.labels.map((cl) => {
+                                                    const Icon = getIconForLabel(cl.label_id);
+                                                    return (
+                                                      <div key={cl.id} className="flex items-stretch rounded h-6 max-w-full overflow-hidden">
+                                                        <div 
+                                                          className="flex-shrink-0 px-1.5 flex items-center justify-center text-black/60"
+                                                          style={{ backgroundColor: cl.label?.color }}
+                                                        >
+                                                          <Icon className="w-3.5 h-3.5" />
+                                                        </div>
+                                                        <div 
+                                                          className="px-2 flex items-center text-xs font-medium text-black truncate"
+                                                          style={{ backgroundColor: `color-mix(in srgb, ${cl.label?.color || '#000'} 30%, transparent)` }}
+                                                        >
+                                                          {cl.label?.name}
+                                                        </div>
+                                                      </div>
+                                                    );
+                                                  })}
                                                 </div>
                                               )}
                                               {card.name}

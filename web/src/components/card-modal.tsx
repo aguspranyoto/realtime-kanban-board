@@ -15,6 +15,14 @@ import {
   FileText,
   Trash2,
   ExternalLink,
+  Activity,
+  Anchor,
+  Aperture,
+  Award,
+  Book,
+  Briefcase,
+  Camera,
+  Compass,
 } from "lucide-react";
 
 import api from "@/lib/api";
@@ -33,6 +41,13 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
+
+const LABEL_ICONS = [Activity, Anchor, Aperture, Award, Book, Briefcase, Camera, Compass];
+const getIconForLabel = (id: string) => {
+  if (!id) return LABEL_ICONS[0];
+  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return LABEL_ICONS[hash % LABEL_ICONS.length];
+};
 
 interface CardModalProps {
   card: Card | null;
@@ -245,7 +260,7 @@ export function CardModal({ card, isOpen, onClose, boardId, listName }: CardModa
       <DialogContent className="w-full max-w-3xl sm:max-w-3xl bg-popover border max-h-[90vh] overflow-y-auto p-0">
         {/* Cover Image */}
         {(card.cover_url || coverAttachment?.url) && (
-          <div className="relative w-full h-40 overflow-hidden rounded-t-lg">
+          <div className="relative w-full h-80 overflow-hidden rounded-t-lg">
             <img
               src={getFileUrl(card.cover_url || coverAttachment?.url || "")}
               alt="Card cover"
@@ -287,21 +302,31 @@ export function CardModal({ card, isOpen, onClose, boardId, listName }: CardModa
                   <div>
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Labels</h3>
                     <div className="flex flex-wrap gap-2">
-                      {card.labels.map((cl) => (
-                        <div
-                          key={cl.id}
-                          className="px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1 group"
-                          style={{ backgroundColor: cl.label?.color, color: "#fff" }}
-                        >
-                          {cl.label?.name}
-                          <button
-                            onClick={() => removeLabel.mutate(cl.label_id)}
-                            className="opacity-0 group-hover:opacity-100 ml-1 hover:text-black transition-opacity cursor-pointer"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
+                      {card.labels.map((cl) => {
+                        const Icon = getIconForLabel(cl.label_id);
+                        return (
+                          <div key={cl.id} className="flex items-stretch rounded h-7 max-w-full overflow-hidden">
+                            <div
+                              className="flex-shrink-0 px-2 flex items-center justify-center text-black/60"
+                              style={{ backgroundColor: cl.label?.color }}
+                            >
+                              <Icon className="w-4 h-4" />
+                            </div>
+                            <div
+                              className="px-2.5 flex items-center text-sm font-medium text-black truncate group relative"
+                              style={{ backgroundColor: `color-mix(in srgb, ${cl.label?.color || '#000'} 30%, transparent)` }}
+                            >
+                              <span>{cl.label?.name}</span>
+                              <button
+                                onClick={() => removeLabel.mutate(cl.label_id)}
+                                className="opacity-0 group-hover:opacity-100 absolute right-1 bg-white/50 rounded hover:bg-white/80 transition-all cursor-pointer"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -615,7 +640,7 @@ export function CardModal({ card, isOpen, onClose, boardId, listName }: CardModa
                       {["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7"].map((color) => (
                         <button
                           key={color}
-                          className={`w-6 h-6 rounded-md cursor-pointer ${newLabelColor === color ? "ring-2 ring-white" : ""}`}
+                          className={`w-6 h-6 rounded-md cursor-pointer ${newLabelColor === color ? "ring-2 ring-gray-500" : ""}`}
                           style={{ backgroundColor: color }}
                           onClick={() => setNewLabelColor(color)}
                         />
