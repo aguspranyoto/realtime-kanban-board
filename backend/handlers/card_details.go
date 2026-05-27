@@ -6,6 +6,7 @@ import (
 
 	"github.com/aguspranyoto/trello-clone/database"
 	"github.com/aguspranyoto/trello-clone/models"
+	"github.com/aguspranyoto/trello-clone/utils"
 )
 
 // AddLabelToCard handles creating/attaching a label to a card
@@ -145,6 +146,9 @@ func (h *CardHandler) UpdateChecklistItem(c *fiber.Ctx) error {
 	var card models.Card
 	database.DB.Preload("List").First(&card, "id = ?", checklist.CardID)
 	h.Hub.BroadcastToBoard(card.List.BoardID.String(), "card_updated", card.ID)
+
+	// Trigger automation engine
+	utils.EvaluateOnChecklistUpdate(card.ID, h.Hub)
 
 	return c.JSON(fiber.Map{"message": "Item updated"})
 }

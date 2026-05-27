@@ -109,14 +109,14 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
 
 ### Phase 7: Attachments, Covers & Calendar Planner
 
-1. Integrate Cloudflare R2 client in Go for file uploads (`POST /api/cards/:id/attachments`).
-2. Add attachment rendering and cover selection inside Web and Mobile card modals.
-3. Build a Calendar Planner view page (Web and Mobile) aggregating cards by their due dates.
+1. [DONE] Integrate Cloudflare R2 client in Go for file uploads (`POST /api/cards/:id/attachments`).
+2. [DONE] Add attachment rendering and cover selection inside Web and Mobile card modals.
+3. [DONE] Build a Calendar Planner view page (Web and Mobile) aggregating cards by their due dates.
 
 ### Phase 8: Automation Engine (Butler-like rules)
 
-1. Add rules schema (e.g. When checklist is 100% completed, move card to list X).
-2. Build rule execution engine on the Go backend triggered by card/checklist mutations.
+1. [DONE] Add rules schema (e.g. When checklist is 100% completed, move card to list X).
+2. [DONE] Build rule execution engine on the Go backend triggered by card/checklist mutations.
 
 ## 5. Feature Comparison with Original Trello
 
@@ -127,11 +127,36 @@ We will use a **Monorepo** approach to manage the entire full-stack application 
 - **Card Details**: Descriptions, multi-item Checklists, Due Dates, and customizable Labels.
 - **Real-Time Updates**: Live synchronization of board state across clients using Go WebSockets.
 - **Multi-Platform**: Next.js Web App and Expo Mobile App (both using monochromatic design system).
-
-### Not Implemented (Future Roadmap - Covered in Phases 6, 7, 8):
-
 - **Inbox & Notifications**: Bell notification panel for user assignments, comments, and due date alerts (with Resend email notifications).
 - **Planner / Calendar View**: Board calendar layout view showing cards by their due dates.
 - **Activity Log & Comments**: Card comments section and tracking history logs of card movements.
-- **Attachments**: Custom file and background image uploading (planned for Cloudflare R2).
-- **Automation**: Custom automation triggers (e.g., automatically archiving card when all checklists are checked).
+- **Attachments**: Custom file and cover image uploading utilizing Cloudflare R2 storage.
+- **Automation Engine**: Butler-like automation rules (e.g., automatically archiving card or moving card when checklists are 100% completed).
+
+### Not Implemented (Future Roadmap):
+
+- None (All core Phases 1-8 of the systems plan are successfully implemented).
+
+## 6. Verification & Bug Fix Logs (2026-05-27)
+
+### What We Tested
+- **User Authentication**: Logged in and tested form switching with user `agusprnyt2@gmail.com`.
+- **Workspace & Board Management**: Created workspace and board "Automation Test Board" (windowed) and "Fullscreen Board" (fullscreen).
+- **Kanban Board Core**: Created "To Do" and "Done" lists; created cards and moved them between lists.
+- **Card Details & Checklist**: Added due dates and created multi-item checklists.
+- **Butler Automation Engine**: Created automation rules (e.g. `When checklist is 100% completed` -> `move card to list "Done"`).
+- **Automation Execution & Responsiveness**: Checked all checklist items. The system executed the Butler rules immediately in both standard and fullscreen Chrome resolutions.
+- **Calendar / Planner View**: Verified that cards correctly place on their due date grids in the board calendar layout.
+- **Resolution Testing**: Verified responsiveness and styling layouts under maximized/fullscreen window resolution (1920x1080 viewport).
+
+### What We Found
+- A React key reconciliation bug on the root AuthPage during transition between login and registration forms: the email input value from the login form was incorrectly persisting and populating the Full Name input field in the registration form.
+- The `CardModal` and `AutomationModal` dialog containers were rendering with a very small/narrow width (`sm:max-w-sm` fallback from the base dialog component), causing sidebar buttons to wrap text awkwardly and date pickers to overflow boundaries.
+
+### What We Fixed
+- Resolved the AuthPage form DOM node reuse issue by assigning unique `key` props (`key="login-form"` and `key="register-form"`) to the `<form>` elements.
+- Cleaned up state transitions by triggering `reset()` on both forms when toggling between login and registration views.
+- Adjusted modal styling on `CardModal` and `AutomationModal` dialog content wrappers to use `w-full max-w-3xl sm:max-w-3xl` classes to override the base fallback dialog size, producing a spacious desktop view.
+
+
+

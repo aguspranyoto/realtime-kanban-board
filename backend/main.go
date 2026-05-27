@@ -10,6 +10,7 @@ import (
 	"github.com/aguspranyoto/trello-clone/config"
 	"github.com/aguspranyoto/trello-clone/database"
 	"github.com/aguspranyoto/trello-clone/routes"
+	"github.com/aguspranyoto/trello-clone/storage"
 	"github.com/aguspranyoto/trello-clone/workers"
 	"github.com/aguspranyoto/trello-clone/ws"
 )
@@ -21,9 +22,17 @@ func main() {
 	// Connect to database
 	database.Connect(cfg)
 
+	// Initialize Cloudflare R2 client
+	r2, err := storage.NewR2Client(cfg)
+	if err != nil {
+		log.Printf("Warning: R2 client initialization failed: %v", err)
+		r2 = nil
+	}
+
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
-		AppName: "Trello Clone API",
+		AppName:   "Trello Clone API",
+		BodyLimit: 20 * 1024 * 1024, // 20 MB body limit for file uploads
 	})
 
 	// Middleware
@@ -43,8 +52,9 @@ func main() {
 	workers.StartDueDateWorker(cfg, hub)
 
 	// Setup routes
-	routes.Setup(app, cfg, hub)
+	routes.Setup(app, cfg, hub, r2)
 
 	// Start server
 	log.Fatal(app.Listen(":8080"))
 }
+

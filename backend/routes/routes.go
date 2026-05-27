@@ -6,12 +6,13 @@ import (
 	"github.com/aguspranyoto/trello-clone/config"
 	"github.com/aguspranyoto/trello-clone/handlers"
 	"github.com/aguspranyoto/trello-clone/middleware"
+	"github.com/aguspranyoto/trello-clone/storage"
 	"github.com/aguspranyoto/trello-clone/ws"
 	"github.com/gofiber/contrib/websocket"
 )
 
 // Setup registers all API routes on the Fiber app.
-func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub) {
+func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub, r2 *storage.R2Client) {
 	api := app.Group("/api")
 
 	// Health check
@@ -88,4 +89,19 @@ func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub) {
 	// Activities
 	protected.Get("/boards/:id/activities", card.GetBoardActivities)
 	protected.Get("/cards/:id/activities", card.GetCardActivities)
+
+	// Attachments (Phase 7)
+	attachment := handlers.NewAttachmentHandler(hub, r2)
+	protected.Post("/cards/:id/attachments", attachment.Upload)
+	protected.Get("/cards/:id/attachments", attachment.GetAll)
+	protected.Delete("/attachments/:id", attachment.Delete)
+	protected.Put("/attachments/:id/cover", attachment.SetCover)
+	protected.Delete("/cards/:id/cover", attachment.RemoveCover)
+
+	// Automation Rules (Phase 8)
+	automation := handlers.NewAutomationHandler()
+	protected.Get("/boards/:boardId/rules", automation.GetRulesByBoard)
+	protected.Post("/boards/:boardId/rules", automation.CreateRule)
+	protected.Delete("/rules/:id", automation.DeleteRule)
+	protected.Put("/rules/:id/toggle", automation.ToggleRule)
 }

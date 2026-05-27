@@ -26,7 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { Plus, LayoutDashboard, LogOut, Settings, CalendarDays } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { ModeToggle } from "@/components/mode-toggle";
 
@@ -119,6 +119,13 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push("/calendar")}
+              className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              <CalendarDays className="h-4 w-4" />
+              Calendar
+            </button>
             <ModeToggle />
             <NotificationBell />
             <DropdownMenu>

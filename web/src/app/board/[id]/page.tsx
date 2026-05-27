@@ -15,7 +15,7 @@ import type { Board, List, Card as CardType, Activity as ActivityType } from "@/
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ArrowLeft, Plus, X, MoreHorizontal, Trash2, History } from "lucide-react";
+import { ArrowLeft, Plus, X, MoreHorizontal, Trash2, History, Bot } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NotificationBell } from "@/components/notification-bell";
 import { CardModal } from "@/components/card-modal";
+import { AutomationModal } from "@/components/automation-modal";
 import { formatDistanceToNow } from "date-fns";
 import { ModeToggle } from "@/components/mode-toggle";
 
@@ -38,6 +39,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
   const [addingNewList, setAddingNewList] = useState(false);
   const [newListName, setNewListName] = useState("");
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [automationOpen, setAutomationOpen] = useState(false);
 
   // Parse cardId from URL parameter for direct card modal links
   useEffect(() => {
@@ -248,6 +250,16 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
             <NotificationBell />
           </div>
 
+          {/* Automation Rules */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setAutomationOpen(true)}
+            className="text-white hover:bg-white/10 cursor-pointer"
+          >
+            <Bot className="h-4 w-4 mr-1" /> Automation
+          </Button>
+
           {/* Activity Drawer */}
           <Sheet>
             <SheetTrigger
@@ -366,24 +378,37 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                             {...provided.draggableProps}
                                             {...provided.dragHandleProps}
                                             onClick={() => setSelectedCardId(card.id)}
-                                            className={`bg-card border rounded-lg px-3 py-2 text-sm text-foreground hover:border-foreground/50 cursor-pointer transition-all ${
+                                            className={`bg-card border rounded-lg text-sm text-foreground hover:border-foreground/50 cursor-pointer transition-all overflow-hidden ${
                                               snapshot.isDragging ? "shadow-xl shadow-black/20 rotate-2" : ""
                                             }`}
                                           >
-                                            {/* Labels */}
-                                            {card.labels && card.labels.length > 0 && (
-                                              <div className="flex gap-1 mb-1.5">
-                                                {card.labels.map((cl) => (
-                                                  <div
-                                                    key={cl.id}
-                                                    className="h-2 w-8 rounded-full"
-                                                    style={{ backgroundColor: cl.label?.color }}
-                                                  />
-                                                ))}
+                                            {/* Cover Image */}
+                                            {card.cover_url && (
+                                              <div className="w-full h-28 overflow-hidden bg-muted">
+                                                <img
+                                                  src={card.cover_url}
+                                                  alt="cover"
+                                                  className="w-full h-full object-cover"
+                                                />
                                               </div>
                                             )}
-                                            {card.name}
+                                            <div className="px-3 py-2">
+                                              {/* Labels */}
+                                              {card.labels && card.labels.length > 0 && (
+                                                <div className="flex gap-1 mb-1.5">
+                                                  {card.labels.map((cl) => (
+                                                    <div
+                                                      key={cl.id}
+                                                      className="h-2 w-8 rounded-full"
+                                                      style={{ backgroundColor: cl.label?.color }}
+                                                    />
+                                                  ))}
+                                                </div>
+                                              )}
+                                              {card.name}
+                                            </div>
                                           </div>
+
                                         )}
                                       </Draggable>
                                     ))}
@@ -512,6 +537,15 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
         isOpen={!!selectedCardId}
         onClose={() => setSelectedCardId(null)}
         boardId={id}
+      />
+
+      {/* Automation Modal */}
+      <AutomationModal
+        boardId={id}
+        lists={board?.lists || []}
+        labels={board?.labels || []}
+        isOpen={automationOpen}
+        onClose={() => setAutomationOpen(false)}
       />
     </div>
   );

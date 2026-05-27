@@ -75,9 +75,11 @@ export interface Card {
   description: string;
   position: number;
   due_date: string | null;
+  cover_url: string;
   labels?: CardLabel[];
   members?: CardMember[];
   checklists?: Checklist[];
+  attachments?: Attachment[];
 }
 
 export interface Label {
@@ -149,3 +151,31 @@ export interface Comment {
   updated_at: string;
   user?: User;
 }
+
+export interface Attachment {
+  id: string;
+  card_id: string;
+  user_id: string;
+  name: string;
+  url: string;
+  mime_type: string;
+  size: number;
+  is_cover: boolean;
+  created_at: string;
+  user?: User;
+}
+
+export interface AutomationRule {
+  id: string;
+  board_id: string;
+  created_by: string;
+  name: string;
+  trigger: string;
+  trigger_params: string;
+  action: string;
+  action_params: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+

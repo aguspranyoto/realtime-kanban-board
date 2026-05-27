@@ -44,6 +44,8 @@ func Connect(cfg *config.Config) {
 		&models.Comment{},
 		&models.Activity{},
 		&models.Notification{},
+		&models.Attachment{},
+		&models.AutomationRule{},
 	)
 	if err != nil {
 		log.Fatalf("Failed to auto-migrate: %v", err)

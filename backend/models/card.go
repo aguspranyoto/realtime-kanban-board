@@ -15,15 +15,17 @@ type Card struct {
 	Description string         `gorm:"type:text" json:"description"`
 	Position    int            `gorm:"not null;default:0" json:"position"`
 	DueDate     *time.Time     `json:"due_date"`
+	CoverURL    string         `gorm:"size:1024" json:"cover_url"` // URL of the cover image
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relations
-	List       List            `gorm:"foreignKey:ListID" json:"list,omitempty"`
-	Labels     []CardLabel     `gorm:"foreignKey:CardID" json:"labels,omitempty"`
-	Members    []CardMember    `gorm:"foreignKey:CardID" json:"members,omitempty"`
-	Checklists []Checklist     `gorm:"foreignKey:CardID" json:"checklists,omitempty"`
+	List        List         `gorm:"foreignKey:ListID" json:"list,omitempty"`
+	Labels      []CardLabel  `gorm:"foreignKey:CardID" json:"labels,omitempty"`
+	Members     []CardMember `gorm:"foreignKey:CardID" json:"members,omitempty"`
+	Checklists  []Checklist  `gorm:"foreignKey:CardID" json:"checklists,omitempty"`
+	Attachments []Attachment `gorm:"foreignKey:CardID" json:"attachments,omitempty"`
 }
 
 func (c *Card) BeforeCreate(tx *gorm.DB) error {

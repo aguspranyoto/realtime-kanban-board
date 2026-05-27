@@ -143,7 +143,7 @@ export default function AuthPage() {
 
             {/* Login Form */}
             {isLogin ? (
-              <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+              <form key="login-form" onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
                   <Input
@@ -174,7 +174,7 @@ export default function AuthPage() {
               </form>
             ) : (
               /* Register Form */
-              <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
+              <form key="register-form" onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="register-name">Full Name</Label>
                   <Input
@@ -220,7 +220,11 @@ export default function AuthPage() {
               {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
               <button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  loginForm.reset();
+                  registerForm.reset();
+                }}
                 className="text-foreground hover:underline underline-offset-4 cursor-pointer"
               >
                 {isLogin ? "Sign up" : "Sign in"}

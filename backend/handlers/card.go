@@ -65,6 +65,9 @@ func (h *CardHandler) Create(c *fiber.Ctx) error {
 		userIDStr := c.Locals("userID").(string)
 		userID, _ := uuid.Parse(userIDStr)
 		utils.LogActivity(list.BoardID, &card.ID, userID, "create_card", "created card '"+card.Name+"'", h.Hub)
+		
+		// Run automation trigger
+		utils.EvaluateOnCardCreated(card.ID, listID, h.Hub)
 	}
 	
 	return c.Status(fiber.StatusCreated).JSON(card)
@@ -77,6 +80,7 @@ func (h *CardHandler) GetByID(c *fiber.Ctx) error {
 		Preload("Labels.Label").
 		Preload("Members.User").
 		Preload("Checklists.Items").
+		Preload("Attachments.User").
 		First(&card, "id = ?", id)
 	if result.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Card not found"})
@@ -94,6 +98,8 @@ func (h *CardHandler) Update(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
+	
+	oldListID := card.ListID
 	if req.Name != "" { card.Name = req.Name }
 	if req.Description != "" { card.Description = req.Description }
 	if req.Position != nil { card.Position = *req.Position }
@@ -117,6 +123,11 @@ func (h *CardHandler) Update(c *fiber.Ctx) error {
 		userIDStr := c.Locals("userID").(string)
 		userID, _ := uuid.Parse(userIDStr)
 		utils.LogActivity(list.BoardID, &card.ID, userID, "update_card", "updated card '"+card.Name+"'", h.Hub)
+		
+		// Run automation trigger if moved
+		if req.ListID != "" && oldListID != card.ListID {
+			utils.EvaluateOnCardMoved(card.ID, card.ListID, h.Hub)
+		}
 	}
 	
 	return c.JSON(card)
@@ -129,8 +140,17 @@ func (h *CardHandler) MoveCards(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 	for _, item := range req.Cards {
+		var prevCard models.Card
+		database.DB.Select("list_id").First(&prevCard, "id = ?", item.ID)
+
 		database.DB.Model(&models.Card{}).Where("id = ?", item.ID).
 			Updates(map[string]interface{}{"list_id": item.ListID, "position": item.Position})
+
+		if prevCard.ListID.String() != item.ListID {
+			cardID, _ := uuid.Parse(item.ID)
+			destListID, _ := uuid.Parse(item.ListID)
+			utils.EvaluateOnCardMoved(cardID, destListID, h.Hub)
+		}
 	}
 	
 	if len(req.Cards) > 0 {
