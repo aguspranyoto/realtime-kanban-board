@@ -26,9 +26,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, LayoutDashboard, LogOut, Settings, CalendarDays } from "lucide-react";
+import { Plus, LayoutDashboard, LogOut, Settings, CalendarDays, Pencil, Trash } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { ModeToggle } from "@/components/mode-toggle";
+import { ConfirmModal } from "@/components/confirm-modal";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -39,6 +40,10 @@ export default function DashboardPage() {
   const [boardName, setBoardName] = useState("");
   const [selectedWs, setSelectedWs] = useState<string | null>(null);
   const [wsDialogOpen, setWsDialogOpen] = useState(false);
+  const [editWsDialogOpen, setEditWsDialogOpen] = useState(false);
+  const [deleteWsDialogOpen, setDeleteWsDialogOpen] = useState(false);
+  const [editWsName, setEditWsName] = useState("");
+  const [editWsDesc, setEditWsDesc] = useState("");
   const [boardDialogOpen, setBoardDialogOpen] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -71,9 +76,10 @@ export default function DashboardPage() {
   // Create workspace mutation
   const createWs = useMutation({
     mutationFn: (data: { name: string; description: string }) =>
-      api.post("/api/workspaces", data),
-    onSuccess: () => {
+      api.post<{ id: string }>("/api/workspaces", data),
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      setSelectedWs(res.data.id);
       setWsName("");
       setWsDesc("");
       setWsDialogOpen(false);
@@ -105,6 +111,35 @@ export default function DashboardPage() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error || "Failed to invite member");
+    }
+  });
+
+  // Update workspace mutation
+  const updateWs = useMutation({
+    mutationFn: (data: { id: string; name: string; description: string }) =>
+      api.put(`/api/workspaces/${data.id}`, { name: data.name, description: data.description }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      setEditWsDialogOpen(false);
+      toast.success("Workspace updated!");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || "Failed to update workspace");
+    }
+  });
+
+  // Delete workspace mutation
+  const deleteWs = useMutation({
+    mutationFn: (id: string) => api.delete(`/api/workspaces/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      setSelectedWs(null);
+      setDeleteWsDialogOpen(false);
+      setEditWsDialogOpen(false);
+      toast.success("Workspace deleted!");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || "Failed to delete workspace");
     }
   });
 
@@ -242,10 +277,10 @@ export default function DashboardPage() {
                 <button
                   key={ws.id}
                   onClick={() => setSelectedWs(ws.id)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 cursor-pointer border ${
                     selectedWs === ws.id
-                      ? "bg-secondary text-foreground border"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      ? "bg-secondary text-foreground border-border shadow-sm font-medium"
+                      : "bg-card text-muted-foreground border-border hover:border-foreground/30 hover:bg-secondary/50 hover:text-foreground hover:shadow-sm"
                   }`}
                 >
                   {ws.name}
@@ -269,6 +304,85 @@ export default function DashboardPage() {
                       {workspaces.find((w) => w.id === selectedWs)?.name ||
                         "Boards"}
                     </h2>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 cursor-pointer" />
+                        }
+                      >
+                        <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="bg-popover border">
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            const ws = workspaces.find((w) => w.id === selectedWs);
+                            if (ws) {
+                              setEditWsName(ws.name);
+                              setEditWsDesc(ws.description || "");
+                              setEditWsDialogOpen(true);
+                            }
+                          }}
+                        >
+                          <Pencil className="mr-2 h-4 w-4" /> Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive cursor-pointer"
+                          onClick={() => setDeleteWsDialogOpen(true)}
+                        >
+                          <Trash className="mr-2 h-4 w-4" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <Dialog open={editWsDialogOpen} onOpenChange={setEditWsDialogOpen}>
+                      <DialogContent className="bg-popover border">
+                        <DialogHeader>
+                          <DialogTitle>Edit Workspace</DialogTitle>
+                          <DialogDescription>
+                            Update your workspace details.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label>Name</Label>
+                            <Input
+                              value={editWsName}
+                              onChange={(e) => setEditWsName(e.target.value)}
+                              placeholder="My Workspace"
+                            />
+                          </div>
+                          <div>
+                            <Label>Description</Label>
+                            <Input
+                              value={editWsDesc}
+                              onChange={(e) => setEditWsDesc(e.target.value)}
+                              placeholder="Optional description"
+                            />
+                          </div>
+                          <Button
+                            onClick={() =>
+                              updateWs.mutate({ id: selectedWs!, name: editWsName, description: editWsDesc })
+                            }
+                            className="w-full cursor-pointer"
+                            disabled={!editWsName || updateWs.isPending}
+                          >
+                            {updateWs.isPending ? "Saving..." : "Save Changes"}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <ConfirmModal
+                      isOpen={deleteWsDialogOpen}
+                      onOpenChange={setDeleteWsDialogOpen}
+                      title="Delete Workspace"
+                      textContent="Are you sure you want to delete this workspace? All boards inside it will be permanently deleted."
+                      confirmText="Delete"
+                      cancelText="Cancel"
+                      onConfirm={() => deleteWs.mutate(selectedWs!)}
+                      isConfirming={deleteWs.isPending}
+                    />
                   </div>
                   <div className="flex items-center gap-2">
                     <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
