@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/auth-store";
@@ -29,11 +29,20 @@ const registerSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 type RegisterForm = z.infer<typeof registerSchema>;
 
-export default function AuthPage() {
+function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setUser = useAuthStore((s) => s.setUser);
+
+  useEffect(() => {
+    if (searchParams.get("verified") === "true") {
+      toast.success("Email verified successfully! You can now sign in.");
+      // Clear the query parameter
+      router.replace("/");
+    }
+  }, [searchParams, router]);
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -63,13 +72,14 @@ export default function AuthPage() {
   const handleRegister = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      const res = await api.post<AuthResponse>("/api/auth/register", data);
-      localStorage.setItem("token", res.data.token);
-      setUser(res.data.user);
-      toast.success("Account created! Please verify your email.");
-      router.push("/dashboard");
-    } catch {
-      toast.error("Registration failed. Email may already be in use.");
+      await api.post("/api/auth/register", data);
+      toast.success("Account created! Please check your email to verify.", {
+        duration: 180000, // 3 minutes
+      });
+      setIsLogin(true);
+      registerForm.reset();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Registration failed.");
     } finally {
       setIsLoading(false);
     }
@@ -234,5 +244,13 @@ export default function AuthPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background p-4 text-foreground">Loading...</div>}>
+      <AuthForm />
+    </Suspense>
   );
 }

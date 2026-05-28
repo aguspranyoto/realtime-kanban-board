@@ -24,6 +24,7 @@ func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub, r2 *storage.R2Client
 	auth := handlers.NewAuthHandler(cfg)
 	api.Post("/auth/register", auth.Register)
 	api.Post("/auth/login", auth.Login)
+	api.Get("/auth/verify", auth.VerifyEmail)
 	api.Post("/auth/google", auth.GoogleCallback)
 
 	// WebSocket route
@@ -47,7 +48,7 @@ func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub, r2 *storage.R2Client
 	protected.Put("/notifications/read-all", notificationHandler.MarkAllAsRead)
 
 	// Workspaces
-	ws := handlers.NewWorkspaceHandler()
+	ws := handlers.NewWorkspaceHandler(cfg)
 	protected.Post("/workspaces", ws.Create)
 	protected.Get("/workspaces", ws.GetAll)
 	protected.Get("/workspaces/:id", ws.GetByID)

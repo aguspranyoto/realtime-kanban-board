@@ -29,3 +29,6 @@
 
 ## Summary
 The web application is fully functional across core features including authentication, entity creation (workspaces, boards, lists, cards), drag-and-drop interactions, and navigation between different views. No errors or broken layouts were encountered during the automated test flow.
+
+## TODO
+- [x] Implement email verification using Resend before allowing account creation when users register using email.

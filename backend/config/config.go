@@ -26,10 +26,14 @@ type Config struct {
 	// Resend
 	ResendAPIKey string
 
+	// URLs
+	BackendURL string
+	WebURL     string
+
 	// Cloudflare R2
 	R2AccountID       string
 	R2AccessKeyID     string
-	R2SecretAccessKey  string
+	R2SecretAccessKey string
 	R2BucketName      string
 }
 
@@ -50,6 +54,8 @@ func Load() *Config {
 		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
 		ResendAPIKey:       getEnv("RESEND_API_KEY", ""),
+		BackendURL:         getEnv("BACKEND_URL", "http://localhost:8080"),
+		WebURL:             getEnv("WEB_URL", "http://localhost:3000"),
 		R2AccountID:        getEnv("R2_ACCOUNT_ID", ""),
 		R2AccessKeyID:      getEnv("R2_ACCESS_KEY_ID", ""),
 		R2SecretAccessKey:  getEnv("R2_SECRET_ACCESS_KEY", ""),

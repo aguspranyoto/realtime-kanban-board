@@ -8,14 +8,17 @@ import (
 	"github.com/google/uuid"
 	"github.com/resend/resend-go/v2"
 
+	"github.com/aguspranyoto/trello-clone/config"
 	"github.com/aguspranyoto/trello-clone/database"
 	"github.com/aguspranyoto/trello-clone/models"
 )
 
-type WorkspaceHandler struct{}
+type WorkspaceHandler struct {
+	Config *config.Config
+}
 
-func NewWorkspaceHandler() *WorkspaceHandler {
-	return &WorkspaceHandler{}
+func NewWorkspaceHandler(cfg *config.Config) *WorkspaceHandler {
+	return &WorkspaceHandler{Config: cfg}
 }
 
 // --- Request DTOs ---
@@ -199,16 +202,66 @@ func (h *WorkspaceHandler) AddMember(c *fiber.Ctx) error {
 	if resendKey != "" {
 		client := resend.NewClient(resendKey)
 
+		emailHTML := fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<style>
+				body { margin: 0; padding: 0; background-color: #f4f4f4; }
+				.container { max-width: 600px; margin: 0 auto; background-color: #ffffff; font-family: Arial, sans-serif; text-align: center; color: #000000; }
+				.logo-area { padding: 10px 20px; }
+				.logo-area h1 { margin: 0; font-size: 16px; font-weight: bold; letter-spacing: 1px; color: #000000; }
+				.hero { background-color: #000000; color: #ffffff; padding: 50px 20px; }
+				.hero-icon { font-size: 32px; margin-bottom: 15px; }
+				.hero-sub { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 15px; }
+				.hero-title { font-size: 22px; margin: 0; font-weight: normal; }
+				.content-area { padding: 50px 40px; }
+				.content-area p { font-size: 16px; line-height: 1.5; margin-bottom: 25px; color: #000000; }
+				.workspace-name { display: inline-block; border: 2px solid #000000; font-weight: bold; padding: 12px 24px; border-radius: 4px; margin-bottom: 40px; font-size: 18px; color: #000000; }
+				.btn { background-color: #000000; color: #ffffff !important; text-decoration: none; padding: 16px 40px; font-weight: bold; font-size: 14px; display: inline-block; border-radius: 4px; text-transform: uppercase; }
+				.signature { font-size: 16px; margin-top: 50px; color: #000000; }
+				.signature-name { font-weight: bold; margin-top: 5px; }
+			</style>
+		</head>
+		<body>
+			<div class="container">
+				<div class="logo-area">
+					<h1>AGUSP.COM</h1>
+				</div>
+				<div class="hero">
+					<div class="hero-sub">You've been invited!</div>
+					<h2 class="hero-title">Workspace Invitation</h2>
+				</div>
+				<div class="content-area">
+					<p>Hi,<br><br>You're almost ready to get started. You have been invited to collaborate with your team in the following workspace:</p>
+					<div class="workspace-name">%s</div><br>
+					<a href="%s/dashboard" class="btn">Go to Dashboard</a>
+					<div class="signature">
+						<div style="margin-bottom: 5px;">Thanks,</div>
+						<div class="signature-name">Trello Clone Team</div>
+					</div>
+				</div>
+			</div>
+		</body>
+		</html>
+		`, workspace.Name, h.Config.WebURL)
+
 		params := &resend.SendEmailRequest{
-			From:    "Trello Clone <onboarding@resend.dev>",
+			From:    "Trello Clone <notifier@agusp.com>",
 			To:      []string{userToAdd.Email},
 			Subject: fmt.Sprintf("You've been invited to %s!", workspace.Name),
-			Html:    fmt.Sprintf("<strong>Hello!</strong><br>You have been added to the workspace <strong>%s</strong>. Log in to start collaborating!", workspace.Name),
+			Html:    emailHTML,
 		}
 
 		_, err := client.Emails.Send(params)
 		if err != nil {
 			fmt.Printf("Failed to send email via Resend: %v\n", err)
+			// Rollback: delete the created member and notification
+			database.DB.Unscoped().Delete(&newMember)
+			database.DB.Unscoped().Delete(&notification)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": fmt.Sprintf("Failed to send invitation email: %v", err),
+			})
 		}
 	}
 
