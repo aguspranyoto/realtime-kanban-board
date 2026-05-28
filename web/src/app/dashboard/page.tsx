@@ -304,85 +304,89 @@ export default function DashboardPage() {
                       {workspaces.find((w) => w.id === selectedWs)?.name ||
                         "Boards"}
                     </h2>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 cursor-pointer" />
-                        }
-                      >
-                        <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="bg-popover border">
-                        <DropdownMenuItem
-                          className="cursor-pointer"
-                          onClick={() => {
-                            const ws = workspaces.find((w) => w.id === selectedWs);
-                            if (ws) {
-                              setEditWsName(ws.name);
-                              setEditWsDesc(ws.description || "");
-                              setEditWsDialogOpen(true);
+                    {user?.id === workspaces.find((w) => w.id === selectedWs)?.owner_id && (
+                      <>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0 cursor-pointer" />
                             }
-                          }}
-                        >
-                          <Pencil className="mr-2 h-4 w-4" /> Rename
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive cursor-pointer"
-                          onClick={() => setDeleteWsDialogOpen(true)}
-                        >
-                          <Trash className="mr-2 h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    <Dialog open={editWsDialogOpen} onOpenChange={setEditWsDialogOpen}>
-                      <DialogContent className="bg-popover border">
-                        <DialogHeader>
-                          <DialogTitle>Edit Workspace</DialogTitle>
-                          <DialogDescription>
-                            Update your workspace details.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <Label>Name</Label>
-                            <Input
-                              value={editWsName}
-                              onChange={(e) => setEditWsName(e.target.value)}
-                              placeholder="My Workspace"
-                            />
-                          </div>
-                          <div>
-                            <Label>Description</Label>
-                            <Input
-                              value={editWsDesc}
-                              onChange={(e) => setEditWsDesc(e.target.value)}
-                              placeholder="Optional description"
-                            />
-                          </div>
-                          <Button
-                            onClick={() =>
-                              updateWs.mutate({ id: selectedWs!, name: editWsName, description: editWsDesc })
-                            }
-                            className="w-full cursor-pointer"
-                            disabled={!editWsName || updateWs.isPending}
                           >
-                            {updateWs.isPending ? "Saving..." : "Save Changes"}
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                            <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="bg-popover border">
+                            <DropdownMenuItem
+                              className="cursor-pointer"
+                              onClick={() => {
+                                const ws = workspaces.find((w) => w.id === selectedWs);
+                                if (ws) {
+                                  setEditWsName(ws.name);
+                                  setEditWsDesc(ws.description || "");
+                                  setEditWsDialogOpen(true);
+                                }
+                              }}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" /> Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive cursor-pointer"
+                              onClick={() => setDeleteWsDialogOpen(true)}
+                            >
+                              <Trash className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
 
-                    <ConfirmModal
-                      isOpen={deleteWsDialogOpen}
-                      onOpenChange={setDeleteWsDialogOpen}
-                      title="Delete Workspace"
-                      textContent="Are you sure you want to delete this workspace? All boards inside it will be permanently deleted."
-                      confirmText="Delete"
-                      cancelText="Cancel"
-                      onConfirm={() => deleteWs.mutate(selectedWs!)}
-                      isConfirming={deleteWs.isPending}
-                    />
+                        <Dialog open={editWsDialogOpen} onOpenChange={setEditWsDialogOpen}>
+                          <DialogContent className="bg-popover border">
+                            <DialogHeader>
+                              <DialogTitle>Edit Workspace</DialogTitle>
+                              <DialogDescription>
+                                Update your workspace details.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div>
+                                <Label>Name</Label>
+                                <Input
+                                  value={editWsName}
+                                  onChange={(e) => setEditWsName(e.target.value)}
+                                  placeholder="My Workspace"
+                                />
+                              </div>
+                              <div>
+                                <Label>Description</Label>
+                                <Input
+                                  value={editWsDesc}
+                                  onChange={(e) => setEditWsDesc(e.target.value)}
+                                  placeholder="Optional description"
+                                />
+                              </div>
+                              <Button
+                                onClick={() =>
+                                  updateWs.mutate({ id: selectedWs!, name: editWsName, description: editWsDesc })
+                                }
+                                className="w-full cursor-pointer"
+                                disabled={!editWsName || updateWs.isPending}
+                              >
+                                {updateWs.isPending ? "Saving..." : "Save Changes"}
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+
+                        <ConfirmModal
+                          isOpen={deleteWsDialogOpen}
+                          onOpenChange={setDeleteWsDialogOpen}
+                          title="Delete Workspace"
+                          textContent="Are you sure you want to delete this workspace? All boards inside it will be permanently deleted."
+                          confirmText="Delete"
+                          cancelText="Cancel"
+                          onConfirm={() => deleteWs.mutate(selectedWs!)}
+                          isConfirming={deleteWs.isPending}
+                        />
+                      </>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
