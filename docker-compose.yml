@@ -1,18 +1,18 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: trello-clone-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: trello_clone
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+#  db:
+#    image: postgres:15-alpine
+#    container_name: trello-clone-db
+#    environment:
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: password
+#      POSTGRES_DB: trello_clone
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    restart: unless-stopped
 
   backend:
     build: 
@@ -23,8 +23,6 @@ services:
       - "8080:8080"
     env_file:
       - ./backend/.env
-    depends_on:
-      - db
     restart: unless-stopped
 
   web:
@@ -40,5 +38,5 @@ services:
       - backend
     restart: unless-stopped
 
-volumes:
-  postgres_data:
+#volumes:
+#  postgres_data:

@@ -8,6 +8,7 @@ import (
 	"github.com/aguspranyoto/trello-clone/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
 
 // DB is the global database instance.
@@ -21,7 +22,11 @@ func Connect(cfg *config.Config) {
 	)
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix: "trello_clone_", // Prefix khusus untuk project Trello Clone
+		},
+	})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}

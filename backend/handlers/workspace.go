@@ -68,8 +68,8 @@ func (h *WorkspaceHandler) GetAll(c *fiber.Ctx) error {
 
 	var workspaces []models.Workspace
 	database.DB.
-		Joins("JOIN workspace_members ON workspace_members.workspace_id = workspaces.id").
-		Where("workspace_members.user_id = ?", userID).
+		Joins("JOIN trello_clone_workspace_members ON trello_clone_workspace_members.workspace_id = trello_clone_workspaces.id").
+		Where("trello_clone_workspace_members.user_id = ?", userID).
 		Preload("Members.User").
 		Find(&workspaces)
 
