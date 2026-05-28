@@ -40,6 +40,8 @@ export default function DashboardPage() {
   const [selectedWs, setSelectedWs] = useState<string | null>(null);
   const [wsDialogOpen, setWsDialogOpen] = useState(false);
   const [boardDialogOpen, setBoardDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
 
   // Fetch current user on mount
   useEffect(() => {
@@ -89,6 +91,21 @@ export default function DashboardPage() {
       setBoardDialogOpen(false);
       toast.success("Board created!");
     },
+  });
+
+  // Invite member mutation
+  const inviteMember = useMutation({
+    mutationFn: (data: { workspaceId: string; email: string }) =>
+      api.post(`/api/workspaces/${data.workspaceId}/members`, { email: data.email }),
+    onSuccess: () => {
+      setInviteEmail("");
+      setInviteDialogOpen(false);
+      toast.success("Member invited successfully!");
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || "Failed to invite member");
+    }
   });
 
   const handleLogout = async () => {
@@ -247,24 +264,68 @@ export default function DashboardPage() {
             {selectedWs ? (
               <>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-foreground">
-                    {workspaces.find((w) => w.id === selectedWs)?.name ||
-                      "Boards"}
-                  </h2>
-                  <Dialog
-                    open={boardDialogOpen}
-                    onOpenChange={setBoardDialogOpen}
-                  >
-                    <DialogTrigger
-                      render={
-                        <Button
-                          size="sm"
-                          className="cursor-pointer"
-                        />
-                      }
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-semibold text-foreground">
+                      {workspaces.find((w) => w.id === selectedWs)?.name ||
+                        "Boards"}
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+                      <DialogTrigger
+                        render={
+                          <Button size="sm" variant="outline" className="cursor-pointer" />
+                        }
+                      >
+                        Invite
+                      </DialogTrigger>
+                      <DialogContent className="bg-popover border">
+                        <DialogHeader>
+                          <DialogTitle>Invite to Workspace</DialogTitle>
+                          <DialogDescription>
+                            Enter the email address of the user you want to invite.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label>Email</Label>
+                            <Input
+                              type="email"
+                              value={inviteEmail}
+                              onChange={(e) => setInviteEmail(e.target.value)}
+                              placeholder="user@example.com"
+                            />
+                          </div>
+                          <Button
+                            onClick={() =>
+                              inviteMember.mutate({
+                                workspaceId: selectedWs!,
+                                email: inviteEmail,
+                              })
+                            }
+                            className="w-full cursor-pointer"
+                            disabled={!inviteEmail || inviteMember.isPending}
+                          >
+                            {inviteMember.isPending ? "Inviting..." : "Invite"}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Dialog
+                      open={boardDialogOpen}
+                      onOpenChange={setBoardDialogOpen}
                     >
-                      <Plus className="mr-2 h-4 w-4" /> New Board
-                    </DialogTrigger>
+                      <DialogTrigger
+                        render={
+                          <Button
+                            size="sm"
+                            className="cursor-pointer"
+                          />
+                        }
+                      >
+                        <Plus className="mr-2 h-4 w-4" /> New Board
+                      </DialogTrigger>
                     <DialogContent className="bg-popover border">
                       <DialogHeader>
                         <DialogTitle>Create Board</DialogTitle>
@@ -298,6 +359,7 @@ export default function DashboardPage() {
                       </div>
                     </DialogContent>
                   </Dialog>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

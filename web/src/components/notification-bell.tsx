@@ -110,9 +110,12 @@ export function NotificationBell() {
                       {notification.type === "comment" && "commented on a card:"}
                       {notification.type === "assigned" && "assigned you to a card:"}
                       {notification.type === "mention" && "mentioned you on a card:"}
-                      <span className="block font-medium mt-0.5 text-muted-foreground line-clamp-2">
-                        {notification.card?.name}
-                      </span>
+                      {notification.type === "workspace_invite" && "invited you to a workspace."}
+                      {notification.card?.name && (
+                        <span className="block font-medium mt-0.5 text-muted-foreground line-clamp-2">
+                          {notification.card.name}
+                        </span>
+                      )}
                     </p>
                     <p className="text-[10px] text-muted-foreground">
                       {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}

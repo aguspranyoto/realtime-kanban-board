@@ -53,6 +53,8 @@ func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub, r2 *storage.R2Client
 	protected.Get("/workspaces/:id", ws.GetByID)
 	protected.Put("/workspaces/:id", ws.Update)
 	protected.Delete("/workspaces/:id", ws.Delete)
+	protected.Post("/workspaces/:id/members", ws.AddMember)
+	protected.Delete("/workspaces/:id/members/:userId", ws.RemoveMember)
 
 	// Boards
 	board := handlers.NewBoardHandler()
