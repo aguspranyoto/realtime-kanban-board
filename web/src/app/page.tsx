@@ -62,8 +62,8 @@ function AuthForm() {
       setUser(res.data.user);
       toast.success("Welcome back!");
       router.push("/dashboard");
-    } catch {
-      toast.error("Invalid email or password");
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Invalid email or password");
     } finally {
       setIsLoading(false);
     }
