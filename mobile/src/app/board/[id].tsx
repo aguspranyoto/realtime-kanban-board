@@ -61,7 +61,7 @@ const getFileUrl = (url: string) => {
   if (Platform.OS === 'android' && baseUrl.includes('localhost')) {
     baseUrl = baseUrl.replace('localhost', '10.0.2.2');
   }
-  return `${baseUrl}${url}`;
+  return `${baseUrl.replace(/\/$/, '')}/${url.replace(/^\//, '')}`;
 };
 
 const LABEL_ICONS = [Activity, Anchor, Aperture, Award, Book, Briefcase, Camera, Compass];
@@ -111,7 +111,7 @@ export default function BoardScreen() {
       wsURL = wsURL.replace('localhost', '10.0.2.2');
     }
     // Convert http/https to ws/wss
-    wsURL = wsURL.replace(/^http/, 'ws') + `/ws/board/${id}`;
+    wsURL = wsURL.replace(/^http/, 'ws').replace(/\/$/, '') + `/api/ws/board/${id}`;
 
     const ws = new WebSocket(wsURL);
     wsRef.current = ws;
@@ -182,8 +182,11 @@ export default function BoardScreen() {
 
     try {
       await api.put('/api/cards/move', {
-        card_ids: data.map((c) => c.id),
-        list_id: listId,
+        cards: data.map((c, index) => ({
+          id: c.id,
+          list_id: listId,
+          position: index,
+        })),
       });
     } catch (err) {
       fetchBoard();

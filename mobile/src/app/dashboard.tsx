@@ -71,6 +71,7 @@ export default function DashboardScreen() {
       setBoards(response.data);
     } catch (error) {
       console.error(error);
+      setBoards([]);
     } finally {
       setBoardsLoading(false);
     }
