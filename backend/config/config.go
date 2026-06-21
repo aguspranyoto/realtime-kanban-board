@@ -27,8 +27,9 @@ type Config struct {
 	ResendAPIKey string
 
 	// URLs
-	BackendURL string
-	WebURL     string
+	BackendURL  string
+	WebURL      string
+	CORSOrigins string
 
 	// Cloudflare R2
 	R2AccountID       string
@@ -56,6 +57,7 @@ func Load() *Config {
 		ResendAPIKey:       getEnv("RESEND_API_KEY", ""),
 		BackendURL:         getEnv("BACKEND_URL", "http://localhost:8080"),
 		WebURL:             getEnv("WEB_URL", "http://localhost:3000"),
+		CORSOrigins:        getEnv("CORS_ORIGINS", "http://localhost:3000, http://localhost:8081"),
 		R2AccountID:        getEnv("R2_ACCOUNT_ID", ""),
 		R2AccessKeyID:      getEnv("R2_ACCESS_KEY_ID", ""),
 		R2SecretAccessKey:  getEnv("R2_SECRET_ACCESS_KEY", ""),

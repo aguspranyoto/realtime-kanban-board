@@ -103,6 +103,17 @@ func (h *ListHandler) Delete(c *fiber.Ctx) error {
 	if result := database.DB.First(&list, "id = ?", id); result.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "List not found"})
 	}
+	var cardIDs []string
+	database.DB.Model(&models.Card{}).Where("list_id = ?", list.ID).Pluck("id", &cardIDs)
+
+	if len(cardIDs) > 0 {
+		database.DB.Where("card_id IN ?", cardIDs).Delete(&models.Checklist{})
+		database.DB.Where("card_id IN ?", cardIDs).Delete(&models.Attachment{})
+		database.DB.Where("card_id IN ?", cardIDs).Delete(&models.Comment{})
+		database.DB.Where("card_id IN ?", cardIDs).Delete(&models.CardMember{})
+		database.DB.Where("card_id IN ?", cardIDs).Delete(&models.CardLabel{})
+		database.DB.Where("id IN ?", cardIDs).Delete(&models.Card{})
+	}
 	database.DB.Delete(&list)
 	
 	h.Hub.BroadcastToBoard(list.BoardID.String(), "list_deleted", id)

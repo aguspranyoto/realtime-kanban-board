@@ -103,12 +103,17 @@ func (h *CardHandler) AddChecklist(c *fiber.Ctx) error {
 // AddChecklistItem handles adding an item to a checklist
 func (h *CardHandler) AddChecklistItem(c *fiber.Ctx) error {
 	checklistID := c.Params("id")
-	chid, _ := uuid.Parse(checklistID)
+	chid, err := uuid.Parse(checklistID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid checklist ID"})
+	}
 
 	var req struct {
 		Name string `json:"name"`
 	}
-	c.BodyParser(&req)
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
 
 	item := models.ChecklistItem{
 		ChecklistID: chid,
@@ -134,7 +139,9 @@ func (h *CardHandler) UpdateChecklistItem(c *fiber.Ctx) error {
 	var req struct {
 		IsChecked bool `json:"is_checked"`
 	}
-	c.BodyParser(&req)
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
 
 	database.DB.Model(&models.ChecklistItem{}).Where("id = ?", itemID).Update("is_checked", req.IsChecked)
 

@@ -24,10 +24,10 @@ type CreateBoardRequest struct {
 }
 
 type UpdateBoardRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Background  string `json:"background"`
-	Visibility  string `json:"visibility"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	Background  *string `json:"background"`
+	Visibility  *string `json:"visibility"`
 }
 
 func (h *BoardHandler) Create(c *fiber.Ctx) error {
@@ -109,14 +109,21 @@ func (h *BoardHandler) Update(c *fiber.Ctx) error {
 	if result := database.DB.First(&board, "id = ?", id); result.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Board not found"})
 	}
+	// Check Authorization
+	userID := c.Locals("userID").(string)
+	var member models.WorkspaceMember
+	if err := database.DB.Where("workspace_id = ? AND user_id = ?", board.WorkspaceID, userID).First(&member).Error; err != nil {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "You do not have permission to modify this board"})
+	}
+
 	var req UpdateBoardRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 	if req.Name != "" { board.Name = req.Name }
-	if req.Description != "" { board.Description = req.Description }
-	if req.Background != "" { board.Background = req.Background }
-	if req.Visibility != "" { board.Visibility = req.Visibility }
+	if req.Description != nil { board.Description = *req.Description }
+	if req.Background != nil { board.Background = *req.Background }
+	if req.Visibility != nil { board.Visibility = *req.Visibility }
 	database.DB.Save(&board)
 	return c.JSON(board)
 }
@@ -127,6 +134,33 @@ func (h *BoardHandler) Delete(c *fiber.Ctx) error {
 	if result := database.DB.First(&board, "id = ?", id); result.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Board not found"})
 	}
+	// Check Authorization
+	userID := c.Locals("userID").(string)
+	var member models.WorkspaceMember
+	if err := database.DB.Where("workspace_id = ? AND user_id = ?", board.WorkspaceID, userID).First(&member).Error; err != nil {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "You do not have permission to delete this board"})
+	}
+
+	// Cascade delete
+	var listIDs []string
+	database.DB.Model(&models.List{}).Where("board_id = ?", board.ID).Pluck("id", &listIDs)
+
+	if len(listIDs) > 0 {
+		var cardIDs []string
+		database.DB.Model(&models.Card{}).Where("list_id IN ?", listIDs).Pluck("id", &cardIDs)
+
+		if len(cardIDs) > 0 {
+			database.DB.Where("card_id IN ?", cardIDs).Delete(&models.Checklist{})
+			database.DB.Where("card_id IN ?", cardIDs).Delete(&models.Attachment{})
+			database.DB.Where("card_id IN ?", cardIDs).Delete(&models.Comment{})
+			database.DB.Where("card_id IN ?", cardIDs).Delete(&models.CardMember{})
+			database.DB.Where("card_id IN ?", cardIDs).Delete(&models.CardLabel{})
+			database.DB.Where("id IN ?", cardIDs).Delete(&models.Card{})
+		}
+		database.DB.Where("id IN ?", listIDs).Delete(&models.List{})
+	}
+	database.DB.Where("board_id = ?", board.ID).Delete(&models.Label{})
+	database.DB.Where("board_id = ?", board.ID).Delete(&models.Activity{})
 	database.DB.Delete(&board)
 	return c.JSON(fiber.Map{"message": "Board deleted successfully"})
 }

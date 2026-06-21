@@ -82,7 +82,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
     // Determine WS protocol based on window location
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = process.env.NEXT_PUBLIC_API_URL
-      ? process.env.NEXT_PUBLIC_API_URL.replace(/^https?:\/\//, "")
+      ? process.env.NEXT_PUBLIC_API_URL.replace(/^https?:\/\//, "").replace(/\/+$/, "")
       : "localhost:8080";
     
     const ws = new WebSocket(`${protocol}//${host}/api/ws/board/${id}`);

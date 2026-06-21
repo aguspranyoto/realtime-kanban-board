@@ -110,7 +110,10 @@ func (h *CardHandler) DeleteComment(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete comment"})
 	}
 
-	h.Hub.BroadcastToBoard(card.List.BoardID.String(), "comment_deleted", coid)
+	h.Hub.BroadcastToBoard(card.List.BoardID.String(), "comment_deleted", map[string]interface{}{
+		"comment_id": coid,
+		"card_id":    card.ID,
+	})
 
 	return c.JSON(fiber.Map{"message": "Comment deleted successfully"})
 }

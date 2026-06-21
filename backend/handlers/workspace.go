@@ -29,8 +29,8 @@ type CreateWorkspaceRequest struct {
 }
 
 type UpdateWorkspaceRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
 }
 
 // --- Handlers ---
@@ -118,8 +118,8 @@ func (h *WorkspaceHandler) Update(c *fiber.Ctx) error {
 	if req.Name != "" {
 		workspace.Name = req.Name
 	}
-	if req.Description != "" {
-		workspace.Description = req.Description
+	if req.Description != nil {
+		workspace.Description = *req.Description
 	}
 
 	database.DB.Save(&workspace)
@@ -141,6 +141,32 @@ func (h *WorkspaceHandler) Delete(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Only the workspace owner can delete it"})
 	}
 
+	var boardIDs []string
+	database.DB.Model(&models.Board{}).Where("workspace_id = ?", workspace.ID).Pluck("id", &boardIDs)
+
+	if len(boardIDs) > 0 {
+		var listIDs []string
+		database.DB.Model(&models.List{}).Where("board_id IN ?", boardIDs).Pluck("id", &listIDs)
+
+		if len(listIDs) > 0 {
+			var cardIDs []string
+			database.DB.Model(&models.Card{}).Where("list_id IN ?", listIDs).Pluck("id", &cardIDs)
+
+			if len(cardIDs) > 0 {
+				database.DB.Where("card_id IN ?", cardIDs).Delete(&models.Checklist{})
+				database.DB.Where("card_id IN ?", cardIDs).Delete(&models.Attachment{})
+				database.DB.Where("card_id IN ?", cardIDs).Delete(&models.Comment{})
+				database.DB.Where("card_id IN ?", cardIDs).Delete(&models.CardMember{})
+				database.DB.Where("card_id IN ?", cardIDs).Delete(&models.CardLabel{})
+				database.DB.Where("id IN ?", cardIDs).Delete(&models.Card{})
+			}
+			database.DB.Where("id IN ?", listIDs).Delete(&models.List{})
+		}
+		database.DB.Where("board_id IN ?", boardIDs).Delete(&models.Label{})
+		database.DB.Where("board_id IN ?", boardIDs).Delete(&models.Activity{})
+		database.DB.Where("id IN ?", boardIDs).Delete(&models.Board{})
+	}
+	database.DB.Where("workspace_id = ?", workspace.ID).Delete(&models.WorkspaceMember{})
 	database.DB.Delete(&workspace)
 
 	return c.JSON(fiber.Map{"message": "Workspace deleted successfully"})
@@ -256,12 +282,7 @@ func (h *WorkspaceHandler) AddMember(c *fiber.Ctx) error {
 		_, err := client.Emails.Send(params)
 		if err != nil {
 			fmt.Printf("Failed to send email via Resend: %v\n", err)
-			// Rollback: delete the created member and notification
-			database.DB.Unscoped().Delete(&newMember)
-			database.DB.Unscoped().Delete(&notification)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": fmt.Sprintf("Failed to send invitation email: %v", err),
-			})
+			// Do not rollback member/notification, email delivery failure should not prevent membership
 		}
 	}
 

@@ -24,11 +24,11 @@ type CreateCardRequest struct {
 }
 
 type UpdateCardRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Position    *int   `json:"position"`
-	ListID      string `json:"list_id"`
-	DueDate     string `json:"due_date"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	Position    *int    `json:"position"`
+	ListID      string  `json:"list_id"`
+	DueDate     string  `json:"due_date"`
 }
 
 type MoveCardRequest struct {
@@ -110,7 +110,7 @@ func (h *CardHandler) Update(c *fiber.Ctx) error {
 	
 	oldListID := card.ListID
 	if req.Name != "" { card.Name = req.Name }
-	if req.Description != "" { card.Description = req.Description }
+	if req.Description != nil { card.Description = *req.Description }
 	if req.Position != nil { card.Position = *req.Position }
 	if req.ListID != "" {
 		lid, _ := uuid.Parse(req.ListID)
@@ -149,15 +149,22 @@ func (h *CardHandler) MoveCards(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 	for _, item := range req.Cards {
+		cardID, err := uuid.Parse(item.ID)
+		if err != nil {
+			continue
+		}
+		destListID, err := uuid.Parse(item.ListID)
+		if err != nil {
+			continue
+		}
+
 		var prevCard models.Card
-		database.DB.Select("list_id").First(&prevCard, "id = ?", item.ID)
+		database.DB.Select("list_id").First(&prevCard, "id = ?", cardID)
 
-		database.DB.Model(&models.Card{}).Where("id = ?", item.ID).
-			Updates(map[string]interface{}{"list_id": item.ListID, "position": item.Position})
+		database.DB.Model(&models.Card{}).Where("id = ?", cardID).
+			Updates(map[string]interface{}{"list_id": destListID, "position": item.Position})
 
-		if prevCard.ListID.String() != item.ListID {
-			cardID, _ := uuid.Parse(item.ID)
-			destListID, _ := uuid.Parse(item.ListID)
+		if prevCard.ListID != destListID {
 			utils.EvaluateOnCardMoved(cardID, destListID, h.Hub)
 		}
 	}

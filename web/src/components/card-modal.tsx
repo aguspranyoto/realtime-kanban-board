@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -89,9 +89,11 @@ export function CardModal({ card, isOpen, onClose, boardId, listName }: CardModa
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync state when card changes
-  if (card && card.description !== desc && !isEditingDesc) {
-    setDesc(card.description || "");
-  }
+  useEffect(() => {
+    if (card && card.description !== desc && !isEditingDesc) {
+      setDesc(card.description || "");
+    }
+  }, [card, desc, isEditingDesc]);
 
   const invalidateBoard = () => {
     queryClient.invalidateQueries({ queryKey: ["board", boardId] });
