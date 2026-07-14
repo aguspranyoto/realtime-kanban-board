@@ -56,7 +56,7 @@ export default function LoginScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
-          <Text style={styles.title}>Trello Clone</Text>
+          <Text style={styles.title}>Realtime Kanban Board</Text>
           <Text style={styles.subtitle}>
             {isLogin ? 'Sign in to your account' : 'Create a new account'}
           </Text>

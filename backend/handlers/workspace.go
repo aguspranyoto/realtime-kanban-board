@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/resend/resend-go/v2"
 
-	"github.com/aguspranyoto/trello-clone/config"
-	"github.com/aguspranyoto/trello-clone/database"
-	"github.com/aguspranyoto/trello-clone/models"
+	"github.com/aguspranyoto/realtime-kanban-board/config"
+	"github.com/aguspranyoto/realtime-kanban-board/database"
+	"github.com/aguspranyoto/realtime-kanban-board/models"
 )
 
 type WorkspaceHandler struct {
@@ -75,8 +75,8 @@ func (h *WorkspaceHandler) GetAll(c *fiber.Ctx) error {
 
 	var workspaces []models.Workspace
 	database.DB.
-		Joins("JOIN trello_clone_workspace_members ON trello_clone_workspace_members.workspace_id = trello_clone_workspaces.id").
-		Where("trello_clone_workspace_members.user_id = ?", userID).
+		Joins("JOIN realtime_kanban_board_workspace_members ON realtime_kanban_board_workspace_members.workspace_id = realtime_kanban_board_workspaces.id").
+		Where("realtime_kanban_board_workspace_members.user_id = ?", userID).
 		Preload("Members.User").
 		Find(&workspaces)
 
@@ -264,7 +264,7 @@ func (h *WorkspaceHandler) AddMember(c *fiber.Ctx) error {
 					<a href="%s/dashboard" class="btn">Go to Dashboard</a>
 					<div class="signature">
 						<div style="margin-bottom: 5px;">Thanks,</div>
-						<div class="signature-name">Trello Clone Team</div>
+						<div class="signature-name">Realtime Kanban Board Team</div>
 					</div>
 				</div>
 			</div>
@@ -273,7 +273,7 @@ func (h *WorkspaceHandler) AddMember(c *fiber.Ctx) error {
 		`, workspace.Name, h.Config.WebURL)
 
 		params := &resend.SendEmailRequest{
-			From:    "Trello Clone <notifier@agusp.com>",
+			From:    "Realtime Kanban Board <notifier@agusp.com>",
 			To:      []string{userToAdd.Email},
 			Subject: fmt.Sprintf("You've been invited to %s!", workspace.Name),
 			Html:    emailHTML,

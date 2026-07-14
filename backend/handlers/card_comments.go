@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"github.com/aguspranyoto/trello-clone/database"
-	"github.com/aguspranyoto/trello-clone/models"
-	"github.com/aguspranyoto/trello-clone/utils"
+	"github.com/aguspranyoto/realtime-kanban-board/database"
+	"github.com/aguspranyoto/realtime-kanban-board/models"
+	"github.com/aguspranyoto/realtime-kanban-board/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )

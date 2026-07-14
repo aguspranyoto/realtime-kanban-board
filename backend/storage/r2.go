@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	appconfig "github.com/aguspranyoto/trello-clone/config"
+	appconfig "github.com/aguspranyoto/realtime-kanban-board/config"
 )
 
 // R2Client wraps the S3-compatible Cloudflare R2 client.

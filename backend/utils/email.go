@@ -17,7 +17,7 @@ func SendEmail(apiKey string, to string, subject string, htmlContent string) err
 	url := "https://api.resend.com/emails"
 
 	// Resend free tier onboarding requires sending from onboarding@resend.dev
-	from := "Trello Clone <onboarding@resend.dev>"
+	from := "Realtime Kanban Board <onboarding@resend.dev>"
 
 	payload := map[string]interface{}{
 		"from":    from,

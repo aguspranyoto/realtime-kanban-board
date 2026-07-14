@@ -1,6 +1,6 @@
 {
-  "name": "Trello Clone",
-  "short_name": "Trello",
+  "name": "Realtime Kanban Board",
+  "short_name": "Kanban Board",
   "description": "A modern project management tool",
   "start_url": "/",
   "display": "standalone",

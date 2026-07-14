@@ -3,11 +3,11 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/aguspranyoto/trello-clone/config"
-	"github.com/aguspranyoto/trello-clone/handlers"
-	"github.com/aguspranyoto/trello-clone/middleware"
-	"github.com/aguspranyoto/trello-clone/storage"
-	"github.com/aguspranyoto/trello-clone/ws"
+	"github.com/aguspranyoto/realtime-kanban-board/config"
+	"github.com/aguspranyoto/realtime-kanban-board/handlers"
+	"github.com/aguspranyoto/realtime-kanban-board/middleware"
+	"github.com/aguspranyoto/realtime-kanban-board/storage"
+	"github.com/aguspranyoto/realtime-kanban-board/ws"
 	"github.com/gofiber/contrib/websocket"
 )
 
@@ -17,7 +17,7 @@ func Setup(app *fiber.App, cfg *config.Config, hub *ws.Hub, r2 *storage.R2Client
 
 	// Health check
 	api.Get("/health", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"status": "ok", "message": "Trello Clone API is running"})
+		return c.JSON(fiber.Map{"status": "ok", "message": "Realtime Kanban Board API is running"})
 	})
 
 	// Auth routes (public)

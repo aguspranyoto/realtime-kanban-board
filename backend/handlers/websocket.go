@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/aguspranyoto/trello-clone/ws"
+	"github.com/aguspranyoto/realtime-kanban-board/ws"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 )

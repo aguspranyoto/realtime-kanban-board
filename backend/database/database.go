@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/aguspranyoto/trello-clone/config"
-	"github.com/aguspranyoto/trello-clone/models"
+	"github.com/aguspranyoto/realtime-kanban-board/config"
+	"github.com/aguspranyoto/realtime-kanban-board/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -24,7 +24,7 @@ func Connect(cfg *config.Config) {
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix: "trello_clone_", // Prefix khusus untuk project Trello Clone
+			TablePrefix: "realtime_kanban_board_", // Prefix khusus untuk project Realtime Kanban Board
 		},
 	})
 	if err != nil {

@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/aguspranyoto/trello-clone/config"
-	"github.com/aguspranyoto/trello-clone/database"
-	"github.com/aguspranyoto/trello-clone/models"
-	"github.com/aguspranyoto/trello-clone/utils"
-	"github.com/aguspranyoto/trello-clone/ws"
+	"github.com/aguspranyoto/realtime-kanban-board/config"
+	"github.com/aguspranyoto/realtime-kanban-board/database"
+	"github.com/aguspranyoto/realtime-kanban-board/models"
+	"github.com/aguspranyoto/realtime-kanban-board/utils"
+	"github.com/aguspranyoto/realtime-kanban-board/ws"
 )
 
 // StartDueDateWorker starts a background worker that runs periodically to check for upcoming due dates.
@@ -83,7 +83,7 @@ func checkUpcomingDueDates(cfg *config.Config, hub *ws.Hub) {
 				<h2>Task Due Reminder</h2>
 				<p>Hello %s,</p>
 				<p>The task <strong>%s</strong> in list <strong>%s</strong> is due on %s.</p>
-				<p>Please review and complete it on your Trello board.</p>
+				<p>Please review and complete it on your Kanban Board board.</p>
 			`, member.User.Name, card.Name, card.List.Name, card.DueDate.Format("2006-01-02 15:04:05"))
 
 			err = utils.SendEmail(cfg.ResendAPIKey, member.User.Email, subject, body)

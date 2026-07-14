@@ -11,10 +11,10 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/aguspranyoto/trello-clone/config"
-	"github.com/aguspranyoto/trello-clone/database"
-	"github.com/aguspranyoto/trello-clone/models"
-	"github.com/aguspranyoto/trello-clone/utils"
+	"github.com/aguspranyoto/realtime-kanban-board/config"
+	"github.com/aguspranyoto/realtime-kanban-board/database"
+	"github.com/aguspranyoto/realtime-kanban-board/models"
+	"github.com/aguspranyoto/realtime-kanban-board/utils"
 	"github.com/resend/resend-go/v2"
 )
 
@@ -130,7 +130,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 				<a href="%s/api/auth/verify?token=%s" class="btn">Verify Your Email</a>
 				<div class="signature">
 					<div style="margin-bottom: 5px;">Thanks,</div>
-					<div class="signature-name">Trello Clone Team</div>
+					<div class="signature-name">Realtime Kanban Board Team</div>
 				</div>
 			</div>
 		</div>
@@ -139,9 +139,9 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	`, h.Config.BackendURL, verificationToken)
 
 	params := &resend.SendEmailRequest{
-		From:    "Trello Clone <notifier@agusp.com>",
+		From:    "Realtime Kanban Board <notifier@agusp.com>",
 		To:      []string{user.Email},
-		Subject: "Verify your email - Trello Clone",
+		Subject: "Verify your email - Realtime Kanban Board",
 		Html:    emailHTML,
 	}
 

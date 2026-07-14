@@ -10,7 +10,7 @@ import (
 func TestHealthCheck(t *testing.T) {
 	app := fiber.New()
 	app.Get("/api/health", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"status": "ok", "message": "Trello Clone API is running"})
+		return c.JSON(fiber.Map{"status": "ok", "message": "Realtime Kanban Board API is running"})
 	})
 
 	req := httptest.NewRequest("GET", "/api/health", nil)

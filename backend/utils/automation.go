@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/aguspranyoto/trello-clone/database"
-	"github.com/aguspranyoto/trello-clone/models"
-	"github.com/aguspranyoto/trello-clone/ws"
+	"github.com/aguspranyoto/realtime-kanban-board/database"
+	"github.com/aguspranyoto/realtime-kanban-board/models"
+	"github.com/aguspranyoto/realtime-kanban-board/ws"
 	"github.com/google/uuid"
 )
 

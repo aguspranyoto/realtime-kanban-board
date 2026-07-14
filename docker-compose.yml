@@ -3,11 +3,11 @@ version: '3.8'
 services:
 #  db:
 #    image: postgres:15-alpine
-#    container_name: trello-clone-db
+#    container_name: realtime-kanban-board-db
 #    environment:
 #      POSTGRES_USER: postgres
 #      POSTGRES_PASSWORD: password
-#      POSTGRES_DB: trello_clone
+#      POSTGRES_DB: realtime_kanban_board
 #    ports:
 #      - "5432:5432"
 #    volumes:
@@ -18,7 +18,7 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile
-    container_name: trello-clone-backend
+    container_name: realtime-kanban-board-backend
     ports:
       - "8082:8080"
     env_file:
@@ -29,7 +29,7 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
-    container_name: trello-clone-web
+    container_name: realtime-kanban-board-web
     ports:
       - "3009:3000"
     env_file:

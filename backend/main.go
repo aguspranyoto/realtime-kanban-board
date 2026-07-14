@@ -9,12 +9,12 @@ import (
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"time"
 
-	"github.com/aguspranyoto/trello-clone/config"
-	"github.com/aguspranyoto/trello-clone/database"
-	"github.com/aguspranyoto/trello-clone/routes"
-	"github.com/aguspranyoto/trello-clone/storage"
-	"github.com/aguspranyoto/trello-clone/workers"
-	"github.com/aguspranyoto/trello-clone/ws"
+	"github.com/aguspranyoto/realtime-kanban-board/config"
+	"github.com/aguspranyoto/realtime-kanban-board/database"
+	"github.com/aguspranyoto/realtime-kanban-board/routes"
+	"github.com/aguspranyoto/realtime-kanban-board/storage"
+	"github.com/aguspranyoto/realtime-kanban-board/workers"
+	"github.com/aguspranyoto/realtime-kanban-board/ws"
 )
 
 func main() {
@@ -33,7 +33,7 @@ func main() {
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
-		AppName:   "Trello Clone API",
+		AppName:   "Realtime Kanban Board API",
 		BodyLimit: cfg.BodyLimit,
 	})
 

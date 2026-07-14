@@ -166,7 +166,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3">
             <LayoutDashboard className="h-5 w-5 text-foreground" />
             <span className="text-lg font-semibold text-foreground">
-              Trello Clone
+              Realtime Kanban Board
             </span>
           </div>
 

@@ -8,7 +8,7 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Trello Clone",
+  title: "Realtime Kanban Board",
   description: "A modern project management tool built with Next.js and Go",
   manifest: "/manifest.json",
 };

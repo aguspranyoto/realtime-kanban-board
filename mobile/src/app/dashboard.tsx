@@ -147,7 +147,7 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Trello Clone</Text>
+        <Text style={styles.headerTitle}>Realtime Kanban Board</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <NotificationBell />
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>

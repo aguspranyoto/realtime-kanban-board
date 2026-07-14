@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/aguspranyoto/trello-clone/storage"
+	"github.com/aguspranyoto/realtime-kanban-board/storage"
 )
 
 // FileProxyHandler serves files from R2 through the backend.

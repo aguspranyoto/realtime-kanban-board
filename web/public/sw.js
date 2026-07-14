@@ -1,6 +1,6 @@
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open('trello-clone-store').then((cache) => cache.addAll([
+    caches.open('realtime-kanban-board-store').then((cache) => cache.addAll([
       '/',
     ])),
   );

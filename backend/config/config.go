@@ -53,7 +53,7 @@ func Load() *Config {
 		DBHost:             getEnv("DB_HOST", "localhost"),
 		DBUser:             getEnv("DB_USER", "postgres"),
 		DBPassword:         getEnv("DB_PASSWORD", "password"),
-		DBName:             getEnv("DB_NAME", "trello_clone"),
+		DBName:             getEnv("DB_NAME", "realtime_kanban_board"),
 		DBPort:             getEnv("DB_PORT", "5432"),
 		JWTSecret:          getEnv("JWT_SECRET", "default_secret_change_me"),
 		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),

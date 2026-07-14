@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 
-	"github.com/aguspranyoto/trello-clone/config"
+	"github.com/aguspranyoto/realtime-kanban-board/config"
 )
 
 // AuthMiddleware validates the JWT token from cookies or Authorization header.

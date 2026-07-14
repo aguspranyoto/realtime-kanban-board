@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Board represents a Trello-style board within a workspace.
+// Board represents a Kanban Board-style board within a workspace.
 type Board struct {
 	ID            uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
 	WorkspaceID   uuid.UUID      `gorm:"type:uuid;not null" json:"workspace_id"`
