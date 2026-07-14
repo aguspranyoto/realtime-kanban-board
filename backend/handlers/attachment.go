@@ -63,6 +63,9 @@ func (h *AttachmentHandler) Upload(c *fiber.Ctx) error {
 	defer file.Close()
 
 	// Build R2 object key: attachments/<cardID>/<timestamp>-<filename>
+	if h.R2Client == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "Storage not configured"})
+	}
 	key := fmt.Sprintf("attachments/%s/%d-%s", cardID, time.Now().UnixMilli(), sanitizeFilename(fileHeader.Filename))
 
 	// Upload to R2
@@ -118,7 +121,7 @@ func (h *AttachmentHandler) Delete(c *fiber.Ctx) error {
 
 	// Delete from R2 (extract key from URL)
 	key := extractKeyFromURL(attachment.URL)
-	if key != "" {
+	if key != "" && h.R2Client != nil {
 		_ = h.R2Client.DeleteFile(c.Context(), key)
 	}
 

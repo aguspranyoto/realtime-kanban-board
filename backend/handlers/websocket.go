@@ -2,10 +2,16 @@ package handlers
 
 import (
 	"log"
+	"time"
 
 	"github.com/aguspranyoto/trello-clone/ws"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
+)
+
+const (
+	pongWait   = 60 * time.Second
+	pingPeriod = (pongWait * 9) / 10
 )
 
 // WsHandler manages websocket connections
@@ -41,6 +47,24 @@ func (h *WsHandler) HandleConnection(c *websocket.Conn) {
 	}
 
 	h.Hub.Register <- client
+
+	// Ping ticker goroutine
+	go func() {
+		ticker := time.NewTicker(pingPeriod)
+		defer ticker.Stop()
+		for range ticker.C {
+			if err := client.WriteMessage(websocket.PingMessage, nil); err != nil {
+				return
+			}
+		}
+	}()
+
+	c.SetReadDeadline(time.Now().Add(pongWait))
+	c.SetPongHandler(func(string) error { 
+		c.SetReadDeadline(time.Now().Add(pongWait))
+		return nil 
+	})
+
 	defer func() {
 		h.Hub.Unregister <- client
 		c.Close()

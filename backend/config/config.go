@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -36,6 +37,9 @@ type Config struct {
 	R2AccessKeyID     string
 	R2SecretAccessKey string
 	R2BucketName      string
+
+	// Server Config
+	BodyLimit int
 }
 
 // Load reads the .env file and returns a Config struct.
@@ -62,12 +66,22 @@ func Load() *Config {
 		R2AccessKeyID:      getEnv("R2_ACCESS_KEY_ID", ""),
 		R2SecretAccessKey:  getEnv("R2_SECRET_ACCESS_KEY", ""),
 		R2BucketName:       getEnv("R2_BUCKET_NAME", ""),
+		BodyLimit:          getEnvAsInt("BODY_LIMIT", 20*1024*1024),
 	}
 }
 
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
+	}
+	return fallback
+}
+
+func getEnvAsInt(key string, fallback int) int {
+	if value, ok := os.LookupEnv(key); ok {
+		if intValue, err := strconv.Atoi(value); err == nil {
+			return intValue
+		}
 	}
 	return fallback
 }

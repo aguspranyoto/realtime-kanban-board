@@ -5,7 +5,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
+	"time"
 
 	"github.com/aguspranyoto/trello-clone/config"
 	"github.com/aguspranyoto/trello-clone/database"
@@ -32,7 +34,7 @@ func main() {
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
 		AppName:   "Trello Clone API",
-		BodyLimit: 20 * 1024 * 1024, // 20 MB body limit for file uploads
+		BodyLimit: cfg.BodyLimit,
 	})
 
 	// Middleware
@@ -42,6 +44,10 @@ func main() {
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowMethods:     "GET, POST, PUT, DELETE, PATCH, OPTIONS",
 		AllowCredentials: true,
+	}))
+	app.Use(limiter.New(limiter.Config{
+		Max:        100,
+		Expiration: 1 * time.Minute,
 	}))
 
 	// Start WebSocket Hub

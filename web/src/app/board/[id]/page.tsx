@@ -79,15 +79,25 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
 
   // WebSocket connection for real-time updates
   useEffect(() => {
-    // Determine WS protocol based on window location
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = process.env.NEXT_PUBLIC_API_URL
-      ? process.env.NEXT_PUBLIC_API_URL.replace(/^https?:\/\//, "").replace(/\/+$/, "")
-      : "localhost:8080";
-    
-    const ws = new WebSocket(`${protocol}//${host}/api/ws/board/${id}`);
+    let ws: WebSocket;
+    let reconnectTimeout: NodeJS.Timeout;
+    let reconnectDelay = 1000;
+    const maxReconnectDelay = 30000;
 
-    ws.onmessage = (event) => {
+    const connectWS = () => {
+      // Determine WS protocol based on window location
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const host = process.env.NEXT_PUBLIC_API_URL
+        ? process.env.NEXT_PUBLIC_API_URL.replace(/^https?:\/\//, "").replace(/\/+$/, "")
+        : "localhost:8080";
+      
+      ws = new WebSocket(`${protocol}//${host}/api/ws/board/${id}`);
+
+      ws.onopen = () => {
+        reconnectDelay = 1000; // reset delay on successful connect
+      };
+
+      ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         // Only invalidate if the event type is one of the mutations we care about
@@ -117,8 +127,17 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
       }
     };
 
+    ws.onclose = () => {
+      reconnectTimeout = setTimeout(connectWS, reconnectDelay);
+      reconnectDelay = Math.min(reconnectDelay * 1.5, maxReconnectDelay);
+    };
+  };
+
+  connectWS();
+
     return () => {
-      ws.close();
+      clearTimeout(reconnectTimeout);
+      if (ws) ws.close();
     };
   }, [id, queryClient]);
 
@@ -174,6 +193,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
 
     if (type === "list") {
       // Reorder lists
+      const previousBoard = queryClient.getQueryData<Board>(["board", id]);
       const newLists = Array.from(board.lists);
       const [moved] = newLists.splice(source.index, 1);
       newLists.splice(destination.index, 0, moved);
@@ -186,6 +206,12 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
 
       reorderLists.mutate({
         lists: newLists.map((l, i) => ({ id: l.id, position: i })),
+      }, {
+        onError: () => {
+          if (previousBoard) queryClient.setQueryData(["board", id], previousBoard);
+          toast.error("Failed to reorder lists");
+        },
+        onSettled: () => queryClient.invalidateQueries({ queryKey: ["board", id] })
       });
       return;
     }
@@ -198,6 +224,8 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
     const sourceCards = Array.from(sourceList.cards);
     const [movedCard] = sourceCards.splice(source.index, 1);
 
+    const previousBoard = queryClient.getQueryData<Board>(["board", id]);
+
     if (source.droppableId === destination.droppableId) {
       // Same list reorder
       sourceCards.splice(destination.index, 0, movedCard);
@@ -209,6 +237,12 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
       queryClient.setQueryData(["board", id], { ...board, lists: updatedLists });
       moveCards.mutate({
         cards: sourceCards.map((c, i) => ({ id: c.id, list_id: sourceList.id, position: i })),
+      }, {
+        onError: () => {
+          if (previousBoard) queryClient.setQueryData(["board", id], previousBoard);
+          toast.error("Failed to move card");
+        },
+        onSettled: () => queryClient.invalidateQueries({ queryKey: ["board", id] })
       });
     } else {
       // Cross-list move
@@ -226,7 +260,13 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
         ...sourceCards.map((c, i) => ({ id: c.id, list_id: sourceList.id, position: i })),
         ...destCards.map((c, i) => ({ id: c.id, list_id: destList.id, position: i })),
       ];
-      moveCards.mutate({ cards: allCards });
+      moveCards.mutate({ cards: allCards }, {
+        onError: () => {
+          if (previousBoard) queryClient.setQueryData(["board", id], previousBoard);
+          toast.error("Failed to move card");
+        },
+        onSettled: () => queryClient.invalidateQueries({ queryKey: ["board", id] })
+      });
     }
   };
 
@@ -462,15 +502,16 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                                     className="text-sm"
                                   />
                                   <div className="flex items-center gap-2">
-                                    <Button
-                                      size="sm"
-                                      className="cursor-pointer"
-                                      onClick={() => {
-                                        if (newCardName.trim()) createCard.mutate({ list_id: list.id, name: newCardName.trim() });
-                                      }}
-                                    >
-                                      Add Card
-                                    </Button>
+                                      <Button
+                                        size="sm"
+                                        className="cursor-pointer"
+                                        disabled={createCard.isPending}
+                                        onClick={() => {
+                                          if (newCardName.trim()) createCard.mutate({ list_id: list.id, name: newCardName.trim() });
+                                        }}
+                                      >
+                                        {createCard.isPending ? "Adding..." : "Add Card"}
+                                      </Button>
                                     <Button
                                       size="sm"
                                       variant="ghost"
@@ -519,11 +560,12 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
                         <Button
                           size="sm"
                           className="cursor-pointer"
+                          disabled={createList.isPending}
                           onClick={() => {
                             if (newListName.trim()) createList.mutate({ board_id: id, name: newListName.trim() });
                           }}
                         >
-                          Add List
+                          {createList.isPending ? "Adding..." : "Add List"}
                         </Button>
                         <Button
                           size="sm"

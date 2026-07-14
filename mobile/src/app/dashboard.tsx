@@ -11,6 +11,7 @@ import {
   Alert,
   useWindowDimensions,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../lib/api';
@@ -40,7 +41,7 @@ export default function DashboardScreen() {
   const { width } = useWindowDimensions();
 
   // Dynamic grid column calculation: 1 column for very small screens, 2 for most phones, more for tablets
-  const numColumns = width < 380 ? 1 : Math.floor(width / 180);
+  const numColumns = Math.max(1, Math.floor(width / 180));
 
   // Modal states
   const [wsModalVisible, setWsModalVisible] = useState(false);
@@ -52,8 +53,14 @@ export default function DashboardScreen() {
 
   const fetchWorkspaces = async () => {
     try {
+      const cached = await AsyncStorage.getItem('workspaces');
+      if (cached) {
+        setWorkspaces(JSON.parse(cached));
+        setLoading(false);
+      }
       const response = await api.get('/api/workspaces');
       setWorkspaces(response.data);
+      AsyncStorage.setItem('workspaces', JSON.stringify(response.data));
       if (response.data.length > 0 && !selectedWs) {
         setSelectedWs(response.data[0].id);
       }
@@ -67,11 +74,13 @@ export default function DashboardScreen() {
   const fetchBoards = async (wsId: string) => {
     setBoardsLoading(true);
     try {
+      const cached = await AsyncStorage.getItem(`boards_${wsId}`);
+      if (cached) setBoards(JSON.parse(cached));
       const response = await api.get(`/api/boards/workspace/${wsId}`);
       setBoards(response.data);
+      AsyncStorage.setItem(`boards_${wsId}`, JSON.stringify(response.data));
     } catch (error) {
       console.error(error);
-      setBoards([]);
     } finally {
       setBoardsLoading(false);
     }

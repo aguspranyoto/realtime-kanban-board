@@ -19,6 +19,14 @@ type Client struct {
 	Conn    *websocket.Conn
 	BoardID string
 	UserID  string
+	mu      sync.Mutex
+}
+
+// WriteMessage provides thread-safe writing to the websocket connection
+func (c *Client) WriteMessage(messageType int, data []byte) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.Conn.WriteMessage(messageType, data)
 }
 
 // Hub maintains the set of active clients and broadcasts messages to the clients.
@@ -60,7 +68,7 @@ func (h *Hub) Run() {
 			// Just a general broadcast if needed
 			h.mu.Lock()
 			for client := range h.clients {
-				if err := client.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
+				if err := client.WriteMessage(websocket.TextMessage, message); err != nil {
 					client.Conn.Close()
 					delete(h.clients, client)
 				}
@@ -88,7 +96,7 @@ func (h *Hub) BroadcastToBoard(boardID string, messageType string, payload inter
 
 	for client := range h.clients {
 		if client.BoardID == boardID {
-			if err := client.Conn.WriteMessage(websocket.TextMessage, bytes); err != nil {
+			if err := client.WriteMessage(websocket.TextMessage, bytes); err != nil {
 				client.Conn.Close()
 				delete(h.clients, client)
 			}
